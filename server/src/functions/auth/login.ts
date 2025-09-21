@@ -1,22 +1,22 @@
-import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
+import { APIGatewayProxyEvent, Context } from 'aws-lambda'
 import bcrypt from 'bcryptjs'
 import User from '@/models/User'
 import Organization from '@/models/Organization'
 import { loginSchema } from '@/validators/auth'
-import { ApiResponse } from '@/utils/response'
 import { generateToken } from '@/utils/jwt'
-import { createResponse } from '@/utils/lambda'
+import { Common } from '@/helpers/Common'
+import { Messages } from '@/helpers/Messages'
+import { Constants } from '@/helpers/Constants'
 
 const login = async (event: APIGatewayProxyEvent, context: Context) => {
   try {
     // Parse request body
-    const payloadData = event.body ? JSON.parse(event.body) : {}
+    const payloadData = Common.parseBody(event.body)
     
     // Validate input
     const { error, value } = loginSchema.validate(payloadData)
     if (error) {
-      const errors = error.details.map(detail => detail.message)
-      return createResponse(400, ApiResponse.error('Validation failed', errors))
+      return Common.response(false, Messages.VLD_ERR(error), 0, null, Constants.STATUS_BAD_REQUEST)
     }
 
     const { email, password, loginType } = value
@@ -27,7 +27,7 @@ const login = async (event: APIGatewayProxyEvent, context: Context) => {
     })
 
     if (!user) {
-      return createResponse(401, ApiResponse.error('Invalid credentials'))
+      return Common.response(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
     }
 
     // Check password
@@ -40,12 +40,12 @@ const login = async (event: APIGatewayProxyEvent, context: Context) => {
           lockedUntil: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
         })
       }
-      return createResponse(401, ApiResponse.error('Invalid credentials'))
+      return Common.response(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
     }
 
     // Check if account is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      return createResponse(423, ApiResponse.error('Account temporarily locked'))
+      return Common.response(false, Messages.ACCOUNT_LOCKED, 0, null, Constants.STATUS_LOCKED)
     }
 
     let organization: Organization | null = null
@@ -57,7 +57,7 @@ const login = async (event: APIGatewayProxyEvent, context: Context) => {
       })
 
       if (!organization) {
-        return createResponse(403, ApiResponse.error('Organization access denied'))
+        return Common.response(false, Messages.ACCESS_DENIED, 0, null, Constants.STATUS_FORBIDDEN)
       }
     }
 
@@ -88,17 +88,19 @@ const login = async (event: APIGatewayProxyEvent, context: Context) => {
       updatedAt: user.updatedAt
     }
 
-    return createResponse(200, ApiResponse.success({
+    const responseData = {
       user: userResponse,
       organization,
       token,
       expiresIn: 7 * 24 * 60 * 60 // 7 days in seconds
-    }, 'Login successful'))
+    }
+
+    return Common.response(true, Messages.LOGIN_SUCCESS, 1, responseData, Constants.STATUS_SUCCESS)
 
   } catch (error) {
     console.error('Login error:', error)
-    return createResponse(500, ApiResponse.error('Internal server error'))
+    return Common.response(false, Messages.INTERNAL_ERROR, 0, null, Constants.STATUS_INTERNAL_ERROR)
   }
 }
 
-export const handler: APIGatewayProxyHandler = login
+export const handler = login

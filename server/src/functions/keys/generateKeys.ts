@@ -1,11 +1,12 @@
-import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
+import { APIGatewayProxyEvent, Context } from 'aws-lambda'
 import { generateKeysSchema } from '@/validators/keys'
-import { ApiResponse } from '@/utils/response'
-import { createResponse } from '@/utils/lambda'
-import { authenticate } from '@/utils/auth'
 import Game from '@/models/Game'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
+import { Common } from '@/helpers/Common'
+import { Messages } from '@/helpers/Messages'
+import { Constants } from '@/helpers/Constants'
+import { verify, AuthenticatedEvent } from '@/helpers/Authorization'
 
 // Mock pricing data
 const pricingData: { [key: number]: { [key: number]: number } } = {
@@ -14,22 +15,15 @@ const pricingData: { [key: number]: { [key: number]: number } } = {
   3: { 1: 12, 3: 30, 5: 60, 12: 120, 24: 200, 168: 1200 }, // COD Mobile
 }
 
-const generateKeys = async (event: APIGatewayProxyEvent, context: Context) => {
+const generateKeys = async (event: AuthenticatedEvent, context: Context) => {
   try {
-    // Authenticate user
-    const authResult = await authenticate(event)
-    if (!authResult.success) {
-      return createResponse(authResult.statusCode || 401, ApiResponse.error(authResult.error || 'Authentication failed'))
-    }
-
     // Parse request body
-    const payloadData = event.body ? JSON.parse(event.body) : {}
+    const payloadData = Common.parseBody(event.body)
     
     // Validate input
     const { error, value } = generateKeysSchema.validate(payloadData)
     if (error) {
-      const errors = error.details.map(detail => detail.message)
-      return createResponse(400, ApiResponse.error('Validation failed', errors))
+      return Common.response(false, Messages.VLD_ERR(error), 0, null, Constants.STATUS_BAD_REQUEST)
     }
 
     const {
@@ -45,13 +39,13 @@ const generateKeys = async (event: APIGatewayProxyEvent, context: Context) => {
     const game = await Game.findByPk(gameId)
 
     if (!game || !game.isActive) {
-      return createResponse(404, ApiResponse.error('Game not found'))
+      return Common.response(false, Messages.NO_GAME_FOUND, 0, null, Constants.STATUS_NOT_FOUND)
     }
 
     // Get pricing
     const pricePerDevice = pricingData[gameId]?.[durationHours]
     if (!pricePerDevice) {
-      return createResponse(404, ApiResponse.error('Pricing not available'))
+      return Common.response(false, 'Pricing not available for selected duration', 0, null, Constants.STATUS_NOT_FOUND)
     }
 
     // Calculate costs
@@ -82,24 +76,32 @@ const generateKeys = async (event: APIGatewayProxyEvent, context: Context) => {
       })
     }
 
-    const response = {
+    const responseData = {
       batchId,
       totalGenerated: bulkQuantity,
       totalCost,
       currency: 'INR',
       expiresAt: expiresAt.toISOString(),
       keys: generatedKeys,
+      userId: event.user?.userId,
+      organizationId: event.user?.organizationId,
       ...(bulkQuantity > 1 && {
         downloadUrl: `/api/keys/batch/${batchId}/export`
       })
     }
 
-    return createResponse(200, ApiResponse.success(response, `Successfully generated ${bulkQuantity} key(s)`))
+    return Common.response(
+      true, 
+      Messages.KEY_GENERATION_SUCCESS, 
+      bulkQuantity, 
+      responseData, 
+      Constants.STATUS_SUCCESS
+    )
 
   } catch (error) {
     console.error('Key generation error:', error)
-    return createResponse(500, ApiResponse.error('Failed to generate keys'))
+    return Common.response(false, Messages.KEY_GENERATION_FAILED, 0, null, Constants.STATUS_INTERNAL_ERROR)
   }
 }
 
-export const handler: APIGatewayProxyHandler = generateKeys
+export const handler = verify(generateKeys)

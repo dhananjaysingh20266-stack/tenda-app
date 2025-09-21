@@ -1,20 +1,41 @@
-import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
+import { APIGatewayProxyEvent, Context } from 'aws-lambda'
 import Game from '@/models/Game'
-import { ApiResponse } from '@/utils/response'
-import { createResponse } from '@/utils/lambda'
+import { Common } from '@/helpers/Common'
+import { Messages } from '@/helpers/Messages'
+import { Constants } from '@/helpers/Constants'
 
 const getGames = async (event: APIGatewayProxyEvent, context: Context) => {
   try {
+    // Query parameters for filtering (if needed)
+    const { isActive = 'true' } = event.queryStringParameters || {}
+
+    const whereClause: any = {}
+    if (isActive === 'true') {
+      whereClause.isActive = true
+    }
+
     const games = await Game.findAll({
-      where: { isActive: true },
+      where: whereClause,
       order: [['name', 'ASC']],
     })
 
-    return createResponse(200, ApiResponse.success(games, 'Games retrieved successfully'))
+    return Common.response(
+      true, 
+      Messages.GAMES_RETRIEVED, 
+      games.length, 
+      games, 
+      Constants.STATUS_SUCCESS
+    )
   } catch (error) {
     console.error('Get games error:', error)
-    return createResponse(500, ApiResponse.error('Internal server error'))
+    return Common.response(
+      false, 
+      Messages.INTERNAL_ERROR, 
+      0, 
+      null, 
+      Constants.STATUS_INTERNAL_ERROR
+    )
   }
 }
 
-export const handler: APIGatewayProxyHandler = getGames
+export const handler = getGames
