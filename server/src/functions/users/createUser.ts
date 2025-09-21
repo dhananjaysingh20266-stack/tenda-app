@@ -1,45 +1,43 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
-import serverless from 'serverless-http'
-import express from 'express'
-import cors from 'cors'
-import { authenticate, requireOrganizationAccess } from '@/middleware/auth'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 import { ApiResponse } from '@/utils/response'
+import { createResponse } from '@/utils/lambda'
+import { authenticate, requireOrganizationAccess } from '@/utils/auth'
 
-const app = express()
+const createUser = async (event: APIGatewayProxyEvent, context: Context) => {
+  try {
+    // Authenticate user
+    const authResult = await authenticate(event)
+    if (!authResult.success) {
+      return createResponse(authResult.statusCode || 401, ApiResponse.error(authResult.error || 'Authentication failed'))
+    }
 
-app.use(cors())
-app.use(express.json())
+    // Check organization access
+    const orgResult = await requireOrganizationAccess(authResult.user!)
+    if (!orgResult.success) {
+      return createResponse(orgResult.statusCode || 403, ApiResponse.error(orgResult.error || 'Access denied'))
+    }
 
-interface AuthenticatedRequest extends express.Request {
-  user?: any
-  organization?: any
+    // Parse request body
+    const payloadData = event.body ? JSON.parse(event.body) : {}
+    const { email, firstName, lastName, role } = payloadData
+
+    // Mock user creation
+    const newUser = {
+      id: Date.now(),
+      email,
+      firstName,
+      lastName,
+      role: role || 'member',
+      status: 'pending',
+      organizationId: orgResult.organization!.id,
+      createdAt: new Date().toISOString()
+    }
+
+    return createResponse(201, ApiResponse.success(newUser, 'User created successfully'))
+  } catch (error) {
+    console.error('Create user error:', error)
+    return createResponse(500, ApiResponse.error('Internal server error'))
+  }
 }
 
-app.post('/users', 
-  authenticate,
-  requireOrganizationAccess,
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { email, firstName, lastName, role } = req.body
-
-      // Mock user creation
-      const newUser = {
-        id: Date.now(),
-        email,
-        firstName,
-        lastName,
-        role: role || 'member',
-        status: 'pending',
-        organizationId: req.organization.id,
-        createdAt: new Date().toISOString()
-      }
-
-      res.status(201).json(ApiResponse.success(newUser, 'User created successfully'))
-    } catch (error) {
-      console.error('Create user error:', error)
-      res.status(500).json(ApiResponse.error('Internal server error'))
-    }
-  }
-)
-
-export const handler = serverless(app) as any
+export const handler: APIGatewayProxyHandler = createUser

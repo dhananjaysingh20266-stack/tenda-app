@@ -1,23 +1,25 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
-import serverless from 'serverless-http'
-import express from 'express'
-import cors from 'cors'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 import bcrypt from 'bcryptjs'
 import User from '@/models/User'
 import Organization from '@/models/Organization'
-import { validate } from '@/middleware/validation'
 import { loginSchema } from '@/validators/auth'
 import { ApiResponse } from '@/utils/response'
 import { generateToken } from '@/utils/jwt'
+import { createResponse } from '@/utils/lambda'
 
-const app = express()
-
-app.use(cors())
-app.use(express.json())
-
-app.post('/auth/login', validate(loginSchema), async (req, res) => {
+const login = async (event: APIGatewayProxyEvent, context: Context) => {
   try {
-    const { email, password, loginType } = req.body
+    // Parse request body
+    const payloadData = event.body ? JSON.parse(event.body) : {}
+    
+    // Validate input
+    const { error, value } = loginSchema.validate(payloadData)
+    if (error) {
+      const errors = error.details.map(detail => detail.message)
+      return createResponse(400, ApiResponse.error('Validation failed', errors))
+    }
+
+    const { email, password, loginType } = value
 
     // Find user
     const user = await User.findOne({
@@ -25,7 +27,7 @@ app.post('/auth/login', validate(loginSchema), async (req, res) => {
     })
 
     if (!user) {
-      return res.status(401).json(ApiResponse.error('Invalid credentials'))
+      return createResponse(401, ApiResponse.error('Invalid credentials'))
     }
 
     // Check password
@@ -38,12 +40,12 @@ app.post('/auth/login', validate(loginSchema), async (req, res) => {
           lockedUntil: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
         })
       }
-      return res.status(401).json(ApiResponse.error('Invalid credentials'))
+      return createResponse(401, ApiResponse.error('Invalid credentials'))
     }
 
     // Check if account is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      return res.status(423).json(ApiResponse.error('Account temporarily locked'))
+      return createResponse(423, ApiResponse.error('Account temporarily locked'))
     }
 
     let organization: Organization | null = null
@@ -55,11 +57,8 @@ app.post('/auth/login', validate(loginSchema), async (req, res) => {
       })
 
       if (!organization) {
-        return res.status(403).json(ApiResponse.error('Organization access denied'))
+        return createResponse(403, ApiResponse.error('Organization access denied'))
       }
-    } else {
-      // Individual login - for demo purposes, we'll allow any active user
-      // In production, you'd check organization membership
     }
 
     // Reset login attempts on successful login
@@ -89,7 +88,7 @@ app.post('/auth/login', validate(loginSchema), async (req, res) => {
       updatedAt: user.updatedAt
     }
 
-    res.json(ApiResponse.success({
+    return createResponse(200, ApiResponse.success({
       user: userResponse,
       organization,
       token,
@@ -98,8 +97,8 @@ app.post('/auth/login', validate(loginSchema), async (req, res) => {
 
   } catch (error) {
     console.error('Login error:', error)
-    res.status(500).json(ApiResponse.error('Internal server error'))
+    return createResponse(500, ApiResponse.error('Internal server error'))
   }
-})
+}
 
-export const handler = serverless(app) as any
+export const handler: APIGatewayProxyHandler = login

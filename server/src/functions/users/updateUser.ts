@@ -1,46 +1,49 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
-import serverless from 'serverless-http'
-import express from 'express'
-import cors from 'cors'
-import { authenticate, requireOrganizationAccess } from '@/middleware/auth'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 import { ApiResponse } from '@/utils/response'
+import { createResponse } from '@/utils/lambda'
+import { authenticate, requireOrganizationAccess } from '@/utils/auth'
 
-const app = express()
+const updateUser = async (event: APIGatewayProxyEvent, context: Context) => {
+  try {
+    // Authenticate user
+    const authResult = await authenticate(event)
+    if (!authResult.success) {
+      return createResponse(authResult.statusCode || 401, ApiResponse.error(authResult.error || 'Authentication failed'))
+    }
 
-app.use(cors())
-app.use(express.json())
+    // Check organization access
+    const orgResult = await requireOrganizationAccess(authResult.user!)
+    if (!orgResult.success) {
+      return createResponse(orgResult.statusCode || 403, ApiResponse.error(orgResult.error || 'Access denied'))
+    }
 
-interface AuthenticatedRequest extends express.Request {
-  user?: any
-  organization?: any
+    // Get user ID from path parameters
+    const { id } = event.pathParameters || {}
+    if (!id) {
+      return createResponse(400, ApiResponse.error('User ID is required'))
+    }
+
+    // Parse request body
+    const payloadData = event.body ? JSON.parse(event.body) : {}
+    const { firstName, lastName, role, status } = payloadData
+
+    // Mock user update
+    const updatedUser = {
+      id: parseInt(id),
+      email: 'user@example.com', // Mock data
+      firstName,
+      lastName,
+      role,
+      status,
+      organizationId: orgResult.organization!.id,
+      updatedAt: new Date().toISOString()
+    }
+
+    return createResponse(200, ApiResponse.success(updatedUser, 'User updated successfully'))
+  } catch (error) {
+    console.error('Update user error:', error)
+    return createResponse(500, ApiResponse.error('Internal server error'))
+  }
 }
 
-app.put('/users/:id', 
-  authenticate,
-  requireOrganizationAccess,
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      const { id } = req.params
-      const { firstName, lastName, role, status } = req.body
-
-      // Mock user update
-      const updatedUser = {
-        id: parseInt(id),
-        email: 'user@example.com', // Mock data
-        firstName,
-        lastName,
-        role,
-        status,
-        organizationId: req.organization.id,
-        updatedAt: new Date().toISOString()
-      }
-
-      res.json(ApiResponse.success(updatedUser, 'User updated successfully'))
-    } catch (error) {
-      console.error('Update user error:', error)
-      res.status(500).json(ApiResponse.error('Internal server error'))
-    }
-  }
-)
-
-export const handler = serverless(app) as any
+export const handler: APIGatewayProxyHandler = updateUser

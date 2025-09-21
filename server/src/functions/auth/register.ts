@@ -1,19 +1,11 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
-import serverless from 'serverless-http'
-import express from 'express'
-import cors from 'cors'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 import bcrypt from 'bcryptjs'
 import User from '@/models/User'
 import Organization from '@/models/Organization'
-import { validate } from '@/middleware/validation'
 import { registerSchema } from '@/validators/auth'
 import { ApiResponse } from '@/utils/response'
 import { generateToken } from '@/utils/jwt'
-
-const app = express()
-
-app.use(cors())
-app.use(express.json())
+import { createResponse } from '@/utils/lambda'
 
 const generateSlug = (name: string): string => {
   return name
@@ -22,14 +14,24 @@ const generateSlug = (name: string): string => {
     .replace(/(^-|-$)/g, '')
 }
 
-app.post('/auth/register', validate(registerSchema), async (req, res) => {
+const register = async (event: APIGatewayProxyEvent, context: Context) => {
   try {
-    const { email, password, firstName, lastName, organizationName } = req.body
+    // Parse request body
+    const payloadData = event.body ? JSON.parse(event.body) : {}
+    
+    // Validate input
+    const { error, value } = registerSchema.validate(payloadData)
+    if (error) {
+      const errors = error.details.map(detail => detail.message)
+      return createResponse(400, ApiResponse.error('Validation failed', errors))
+    }
+
+    const { email, password, firstName, lastName, organizationName } = value
 
     // Check if user already exists
     const existingUser = await User.findOne({ where: { email } })
     if (existingUser) {
-      return res.status(400).json(ApiResponse.error('User already exists'))
+      return createResponse(400, ApiResponse.error('User already exists'))
     }
 
     // Generate slug and check if organization already exists
@@ -83,7 +85,7 @@ app.post('/auth/register', validate(registerSchema), async (req, res) => {
       updatedAt: user.updatedAt
     }
 
-    res.status(201).json(ApiResponse.success({
+    return createResponse(201, ApiResponse.success({
       user: userResponse,
       organization,
       token,
@@ -92,8 +94,8 @@ app.post('/auth/register', validate(registerSchema), async (req, res) => {
 
   } catch (error) {
     console.error('Registration error:', error)
-    res.status(500).json(ApiResponse.error('Internal server error'))
+    return createResponse(500, ApiResponse.error('Internal server error'))
   }
-})
+}
 
-export const handler = serverless(app) as any
+export const handler: APIGatewayProxyHandler = register

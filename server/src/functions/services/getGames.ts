@@ -1,27 +1,20 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
-import serverless from 'serverless-http'
-import express from 'express'
-import cors from 'cors'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 import Game from '@/models/Game'
 import { ApiResponse } from '@/utils/response'
+import { createResponse } from '@/utils/lambda'
 
-const app = express()
-
-app.use(cors())
-app.use(express.json())
-
-app.get('/games', async (req, res) => {
+const getGames = async (event: APIGatewayProxyEvent, context: Context) => {
   try {
     const games = await Game.findAll({
       where: { isActive: true },
       order: [['name', 'ASC']],
     })
 
-    res.json(ApiResponse.success(games, 'Games retrieved successfully'))
+    return createResponse(200, ApiResponse.success(games, 'Games retrieved successfully'))
   } catch (error) {
     console.error('Get games error:', error)
-    res.status(500).json(ApiResponse.error('Internal server error'))
+    return createResponse(500, ApiResponse.error('Internal server error'))
   }
-})
+}
 
-export const handler = serverless(app) as any
+export const handler: APIGatewayProxyHandler = getGames

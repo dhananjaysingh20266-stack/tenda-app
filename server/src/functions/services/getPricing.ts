@@ -1,17 +1,14 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
-import serverless from 'serverless-http'
-import express from 'express'
-import cors from 'cors'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 import { ApiResponse } from '@/utils/response'
+import { createResponse } from '@/utils/lambda'
 
-const app = express()
-
-app.use(cors())
-app.use(express.json())
-
-app.get('/games/:gameId/pricing', async (req, res) => {
+const getPricing = async (event: APIGatewayProxyEvent, context: Context) => {
   try {
-    const { gameId } = req.params
+    const { gameId } = event.pathParameters || {}
+
+    if (!gameId) {
+      return createResponse(400, ApiResponse.error('Game ID is required'))
+    }
 
     // Mock pricing data
     const pricingData: { [key: string]: any } = {
@@ -58,14 +55,14 @@ app.get('/games/:gameId/pricing', async (req, res) => {
 
     const pricing = pricingData[gameId]
     if (!pricing) {
-      return res.status(404).json(ApiResponse.error('Pricing not found for this game'))
+      return createResponse(404, ApiResponse.error('Pricing not found for this game'))
     }
 
-    res.json(ApiResponse.success(pricing, 'Pricing retrieved successfully'))
+    return createResponse(200, ApiResponse.success(pricing, 'Pricing retrieved successfully'))
   } catch (error) {
     console.error('Get pricing error:', error)
-    res.status(500).json(ApiResponse.error('Internal server error'))
+    return createResponse(500, ApiResponse.error('Internal server error'))
   }
-})
+}
 
-export const handler = serverless(app) as any
+export const handler: APIGatewayProxyHandler = getPricing

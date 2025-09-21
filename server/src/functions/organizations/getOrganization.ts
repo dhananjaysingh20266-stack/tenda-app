@@ -1,31 +1,27 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
-import serverless from 'serverless-http'
-import express from 'express'
-import cors from 'cors'
-import { authenticate, requireOrganizationAccess } from '@/middleware/auth'
+import { APIGatewayProxyHandler, APIGatewayProxyEvent, Context } from 'aws-lambda'
 import { ApiResponse } from '@/utils/response'
+import { createResponse } from '@/utils/lambda'
+import { authenticate, requireOrganizationAccess } from '@/utils/auth'
 
-const app = express()
+const getOrganization = async (event: APIGatewayProxyEvent, context: Context) => {
+  try {
+    // Authenticate user
+    const authResult = await authenticate(event)
+    if (!authResult.success) {
+      return createResponse(authResult.statusCode || 401, ApiResponse.error(authResult.error || 'Authentication failed'))
+    }
 
-app.use(cors())
-app.use(express.json())
+    // Check organization access
+    const orgResult = await requireOrganizationAccess(authResult.user!)
+    if (!orgResult.success) {
+      return createResponse(orgResult.statusCode || 403, ApiResponse.error(orgResult.error || 'Access denied'))
+    }
 
-interface AuthenticatedRequest extends express.Request {
-  user?: any
-  organization?: any
+    return createResponse(200, ApiResponse.success(orgResult.organization, 'Organization retrieved successfully'))
+  } catch (error) {
+    console.error('Get organization error:', error)
+    return createResponse(500, ApiResponse.error('Internal server error'))
+  }
 }
 
-app.get('/organizations/profile', 
-  authenticate,
-  requireOrganizationAccess,
-  async (req: AuthenticatedRequest, res) => {
-    try {
-      res.json(ApiResponse.success(req.organization, 'Organization retrieved successfully'))
-    } catch (error) {
-      console.error('Get organization error:', error)
-      res.status(500).json(ApiResponse.error('Internal server error'))
-    }
-  }
-)
-
-export const handler = serverless(app) as any
+export const handler: APIGatewayProxyHandler = getOrganization

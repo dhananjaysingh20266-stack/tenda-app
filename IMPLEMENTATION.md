@@ -46,14 +46,14 @@ tenda-app/
 - ✅ Responsive layout with sidebar navigation
 
 ### Backend (Serverless/AWS Lambda)
-- ✅ Serverless Framework with AWS Lambda
+- ✅ Pure AWS Lambda functions (no Express.js dependency)
 - ✅ PostgreSQL database with Sequelize ORM
 - ✅ JWT authentication with bcrypt password hashing
 - ✅ Database models (User, Organization, Game)
 - ✅ Lambda functions for all API endpoints
 - ✅ Input validation with Joi
-- ✅ CORS and security middleware
-- ✅ Comprehensive error handling
+- ✅ CORS headers and error handling
+- ✅ Direct AWS Lambda event handling
 - ✅ Database seeding for demo data
 
 ## Getting Started
