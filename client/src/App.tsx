@@ -22,6 +22,22 @@ function App() {
           <LoginPage />
         } 
       />
+      <Route 
+        path="/login/organization" 
+        element={
+          isAuthenticated ? 
+          <Navigate to={user?.type === 'organization' ? '/dashboard' : '/services'} /> : 
+          <LoginPage />
+        } 
+      />
+      <Route 
+        path="/login/individual" 
+        element={
+          isAuthenticated ? 
+          <Navigate to={user?.type === 'organization' ? '/dashboard' : '/services'} /> : 
+          <LoginPage />
+        } 
+      />
 
       {/* Protected Routes */}
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
