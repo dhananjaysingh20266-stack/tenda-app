@@ -1,0 +1,43 @@
+{
+  "name": "gaming-key-platform-api",
+  "version": "1.0.0",
+  "description": "Serverless API for Gaming Key Platform",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "serverless offline start",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod",
+    "seed": "npm run build && node dist/seed.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write \"src/**/*.{ts,js}\"",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.152",
+    "bcryptjs": "^3.0.2",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.2",
+    "joi": "^18.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.5.2",
+    "@types/uuid": "^10.0.0",
+    "sequelize-cli": "^6.6.3",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-offline": "^13.9.0",
+    "serverless-plugin-typescript": "^2.1.5",
+    "typescript": "^5.9.2"
+  }
+}
