@@ -8,13 +8,13 @@ provider:
   region: ${opt:region, 'us-east-1'}
   environment:
     NODE_ENV: ${self:provider.stage}
-    DB_HOST: ${env:DB_HOST}
-    DB_PORT: ${env:DB_PORT}
-    DB_NAME: ${env:DB_NAME}
-    DB_USER: ${env:DB_USER}
-    DB_PASSWORD: ${env:DB_PASSWORD}
-    JWT_SECRET: ${env:JWT_SECRET}
-    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}
+    DB_HOST: ${env:DB_HOST, 'localhost'}
+    DB_PORT: ${env:DB_PORT, '5432'}
+    DB_NAME: ${env:DB_NAME, 'gaming_key_platform'}
+    DB_USER: ${env:DB_USER, 'postgres'}
+    DB_PASSWORD: ${env:DB_PASSWORD, ''}
+    JWT_SECRET: ${env:JWT_SECRET, 'your-super-secret-jwt-key'}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN, '7d'}
   iam:
     role:
       statements:
@@ -24,12 +24,11 @@ provider:
           Resource: "*"
 
 plugins:
-  - serverless-plugin-typescript
   - serverless-offline
   - serverless-dotenv-plugin
 
 functions:
-  # Authentication
+  # Authentication (JavaScript converted)
   login:
     handler: src/functions/auth/login.handler
     events:
@@ -38,6 +37,24 @@ functions:
           method: post
           cors: true
 
+  # Services (JavaScript converted)
+  getGames:
+    handler: src/functions/services/getGames.handler
+    events:
+      - http:
+          path: /games
+          method: get
+          cors: true
+
+  getPricing:
+    handler: src/functions/services/getPricing.handler
+    events:
+      - http:
+          path: /games/{gameId}/pricing
+          method: get
+          cors: true
+
+  # Original TypeScript functions (will need conversion)
   register:
     handler: src/functions/auth/register.handler
     events:
@@ -102,23 +119,6 @@ functions:
     events:
       - http:
           path: /my-keys
-          method: get
-          cors: true
-
-  # Services
-  getGames:
-    handler: src/functions/services/getGames.handler
-    events:
-      - http:
-          path: /games
-          method: get
-          cors: true
-
-  getPricing:
-    handler: src/functions/services/getPricing.handler
-    events:
-      - http:
-          path: /games/{gameId}/pricing
           method: get
           cors: true
 
