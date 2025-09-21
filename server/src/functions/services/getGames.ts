@@ -1,3 +1,5 @@
+import { APIGatewayProxyHandler } from 'aws-lambda'
+import serverless from 'serverless-http'
 import express from 'express'
 import cors from 'cors'
 import Game from '@/models/Game'
@@ -22,4 +24,4 @@ app.get('/games', async (req, res) => {
   }
 })
 
-export default app
+export const handler = serverless(app) as any

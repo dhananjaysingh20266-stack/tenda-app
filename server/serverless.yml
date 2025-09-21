@@ -1,0 +1,129 @@
+service: gaming-key-platform-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT}
+    DB_NAME: ${env:DB_NAME}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    JWT_SECRET: ${env:JWT_SECRET}
+    JWT_EXPIRES_IN: ${env:JWT_EXPIRES_IN}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - rds:*
+          Resource: "*"
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+functions:
+  # Authentication
+  login:
+    handler: src/functions/auth/login.handler
+    events:
+      - http:
+          path: /auth/login
+          method: post
+          cors: true
+
+  register:
+    handler: src/functions/auth/register.handler
+    events:
+      - http:
+          path: /auth/register
+          method: post
+          cors: true
+
+  # Users
+  getUsers:
+    handler: src/functions/users/getUsers.handler
+    events:
+      - http:
+          path: /users
+          method: get
+          cors: true
+
+  createUser:
+    handler: src/functions/users/createUser.handler
+    events:
+      - http:
+          path: /users
+          method: post
+          cors: true
+
+  updateUser:
+    handler: src/functions/users/updateUser.handler
+    events:
+      - http:
+          path: /users/{id}
+          method: put
+          cors: true
+
+  # Organizations
+  getOrganization:
+    handler: src/functions/organizations/getOrganization.handler
+    events:
+      - http:
+          path: /organizations/profile
+          method: get
+          cors: true
+
+  updateOrganization:
+    handler: src/functions/organizations/updateOrganization.handler
+    events:
+      - http:
+          path: /organizations/profile
+          method: put
+          cors: true
+
+  # API Keys
+  generateKeys:
+    handler: src/functions/keys/generateKeys.handler
+    events:
+      - http:
+          path: /key-generation/generate
+          method: post
+          cors: true
+
+  getUserKeys:
+    handler: src/functions/keys/getUserKeys.handler
+    events:
+      - http:
+          path: /my-keys
+          method: get
+          cors: true
+
+  # Services
+  getGames:
+    handler: src/functions/services/getGames.handler
+    events:
+      - http:
+          path: /games
+          method: get
+          cors: true
+
+  getPricing:
+    handler: src/functions/services/getPricing.handler
+    events:
+      - http:
+          path: /games/{gameId}/pricing
+          method: get
+          cors: true
+
+custom:
+  serverless-offline:
+    httpPort: 3001
+  dotenv:
+    path: .env

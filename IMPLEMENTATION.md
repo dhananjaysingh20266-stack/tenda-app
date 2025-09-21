@@ -16,15 +16,16 @@ tenda-app/
 │   │   ├── types/         # TypeScript type definitions
 │   │   └── styles/        # Global styles
 │   └── package.json
-└── server/                 # Node.js/Express Backend
+└── server/                 # Serverless Backend (AWS Lambda)
     ├── src/
     │   ├── config/        # Database and JWT configuration
     │   ├── models/        # Sequelize database models
-    │   ├── functions/     # Express route handlers
+    │   ├── functions/     # Serverless Lambda functions
     │   ├── middleware/    # Authentication and validation
     │   ├── utils/         # Utility functions
     │   ├── validators/    # Joi validation schemas
-    │   └── index.ts       # Main server entry point
+    │   └── seed.ts        # Database seeding
+    ├── serverless.yml     # Serverless Framework configuration
     └── package.json
 ```
 
@@ -44,12 +45,12 @@ tenda-app/
 - ✅ Organization management interface
 - ✅ Responsive layout with sidebar navigation
 
-### Backend (Node.js/Express)
-- ✅ Express.js server with TypeScript
+### Backend (Serverless/AWS Lambda)
+- ✅ Serverless Framework with AWS Lambda
 - ✅ PostgreSQL database with Sequelize ORM
 - ✅ JWT authentication with bcrypt password hashing
 - ✅ Database models (User, Organization, Game)
-- ✅ Authentication endpoints (login/register)
+- ✅ Lambda functions for all API endpoints
 - ✅ Input validation with Joi
 - ✅ CORS and security middleware
 - ✅ Comprehensive error handling
@@ -60,6 +61,8 @@ tenda-app/
 ### Prerequisites
 - Node.js 18+
 - PostgreSQL database
+- AWS CLI configured (for deployment)
+- Serverless Framework CLI
 
 ### Development Setup
 
@@ -69,7 +72,7 @@ tenda-app/
    cd tenda-app
    ```
 
-2. **Setup Backend**
+2. **Setup Backend (Serverless)**
    ```bash
    cd server
    npm install
@@ -78,7 +81,7 @@ tenda-app/
    cp .env.example .env
    # Edit .env with your database credentials
    
-   # Build and run
+   # Build and run offline
    npm run build
    npm run dev
    ```
@@ -92,22 +95,47 @@ tenda-app/
 
 4. **Access the Application**
    - Frontend: http://localhost:3000
-   - Backend API: http://localhost:3001
-   - Health Check: http://localhost:3001/health
+   - Backend API (offline): http://localhost:3001
+   - Serverless offline endpoints are listed when starting the dev server
 
 ### Demo Credentials
 - Email: demo@example.com
 - Password: password123
 - Type: Organization Owner
 
-## API Endpoints
+## Serverless Framework API Endpoints
 
 ### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/register` - User registration
 
 ### Services  
-- `GET /api/games` - Get available games
+- `GET /games` - Get available games
+- `GET /games/{gameId}/pricing` - Get game pricing tiers
+
+### Organizations
+- `GET /organizations/profile` - Get organization details
+- `PUT /organizations/profile` - Update organization
+
+### Users
+- `GET /users` - Get organization users
+- `POST /users` - Create new user
+- `PUT /users/{id}` - Update user
+
+### Keys
+- `POST /key-generation/generate` - Generate gaming keys
+- `GET /my-keys` - Get user's keys
+
+## Deployment
+
+### Deploy to AWS
+```bash
+# Deploy to development
+npm run deploy:dev
+
+# Deploy to production
+npm run deploy:prod
+```
 
 ## Technology Stack
 
@@ -123,26 +151,26 @@ tenda-app/
 - Axios for HTTP requests
 
 ### Backend
-- Node.js with Express
-- TypeScript
+- AWS Lambda with Serverless Framework
+- Node.js with TypeScript
 - PostgreSQL with Sequelize ORM
 - JWT for authentication
 - Bcrypt for password hashing
 - Joi for input validation
-- Helmet for security headers
+- Serverless-HTTP for Express compatibility
 - CORS for cross-origin requests
 
 ## Next Steps
 
 To complete the full implementation as described in the README:
 
-1. Set up PostgreSQL database
-2. Run database migrations and seeding
-3. Add remaining API endpoints (key generation, user management)
-4. Implement advanced features (session management, analytics)
+1. Configure AWS credentials and deploy to Lambda
+2. Set up PostgreSQL database in AWS RDS
+3. Run database migrations and seeding
+4. Add remaining advanced features (session management, analytics)
 5. Add comprehensive testing
-6. Deploy to production environment
+6. Set up monitoring and logging
 
 ## Contributing
 
-This implementation follows the specifications in the main README.md file and provides a solid foundation for the gaming key platform with modern full-stack architecture.
+This implementation follows the specifications in the main README.md file and provides a solid foundation for the gaming key platform with serverless architecture using AWS Lambda functions for scalable deployment.

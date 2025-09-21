@@ -1,3 +1,5 @@
+import { APIGatewayProxyHandler } from 'aws-lambda'
+import serverless from 'serverless-http'
 import express from 'express'
 import cors from 'cors'
 import bcrypt from 'bcryptjs'
@@ -100,4 +102,4 @@ app.post('/auth/login', validate(loginSchema), async (req, res) => {
   }
 })
 
-export default app
+export const handler = serverless(app) as any
