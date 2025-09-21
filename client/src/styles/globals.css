@@ -88,6 +88,158 @@
   }
 }
 
+/* Advanced Background Animations */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+@keyframes floatMedium {
+  0%, 100% {
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateX(30px) translateY(-30px) rotate(120deg);
+  }
+  66% {
+    transform: translateX(-20px) translateY(20px) rotate(240deg);
+  }
+}
+
+@keyframes floatFast {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+  }
+  25% {
+    transform: translateY(-15px) translateX(15px) scale(1.1);
+  }
+  75% {
+    transform: translateY(15px) translateX(-15px) scale(0.9);
+  }
+}
+
+@keyframes waveFlow {
+  0%, 100% {
+    transform: translateX(-100%) skewX(0deg);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translateX(100%) skewX(-5deg);
+    opacity: 0.3;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(0px) translateX(0px) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes rotateHue {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes meshMorph {
+  0%, 100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    border-radius: 30% 70% 40% 60% / 50% 60% 40% 50%;
+    transform: rotate(90deg) scale(1.1);
+  }
+  50% {
+    border-radius: 70% 30% 60% 40% / 40% 70% 30% 60%;
+    transform: rotate(180deg) scale(0.9);
+  }
+  75% {
+    border-radius: 40% 60% 70% 30% / 30% 40% 60% 70%;
+    transform: rotate(270deg) scale(1.05);
+  }
+}
+
+/* Gaming-themed patterns */
+@keyframes hexagonSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.1;
+  }
+}
+
+@keyframes gridPulse {
+  0%, 100% {
+    opacity: 0.05;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.15;
+    transform: scale(1.02);
+  }
+}
+
+/* Accessibility: Reduce animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animated-bg-element {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
@@ -99,5 +251,62 @@
 
   .animate-scale-in {
     animation: scaleIn 0.4s ease-out;
+  }
+
+  .animate-float-slow {
+    animation: floatSlow 8s ease-in-out infinite;
+  }
+
+  .animate-float-medium {
+    animation: floatMedium 6s ease-in-out infinite;
+  }
+
+  .animate-float-fast {
+    animation: floatFast 4s ease-in-out infinite;
+  }
+
+  .animate-wave-flow {
+    animation: waveFlow 10s linear infinite;
+  }
+
+  .animate-gradient-shift {
+    animation: gradientShift 8s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  .animate-particle-float {
+    animation: particleFloat 15s linear infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 4s ease-in-out infinite;
+  }
+
+  .animate-rotate-hue {
+    animation: rotateHue 20s linear infinite;
+  }
+
+  .animate-mesh-morph {
+    animation: meshMorph 12s ease-in-out infinite;
+  }
+
+  .animate-hexagon-spin {
+    animation: hexagonSpin 15s linear infinite;
+  }
+
+  .animate-grid-pulse {
+    animation: gridPulse 6s ease-in-out infinite;
+  }
+
+  /* Performance optimizations */
+  .gpu-accelerated {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .contain-layout {
+    contain: layout style paint;
   }
 }

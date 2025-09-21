@@ -53,6 +53,17 @@ export default {
         "scale-in": "scaleIn 0.4s ease-out",
         "bounce-subtle": "bounceSubtle 0.6s ease-out",
         "pulse-soft": "pulseSoft 2s ease-in-out infinite",
+        "float-slow": "floatSlow 8s ease-in-out infinite",
+        "float-medium": "floatMedium 6s ease-in-out infinite",
+        "float-fast": "floatFast 4s ease-in-out infinite",
+        "wave-flow": "waveFlow 10s linear infinite",
+        "gradient-shift": "gradientShift 8s ease infinite",
+        "particle-float": "particleFloat 15s linear infinite",
+        "pulse-glow": "pulseGlow 4s ease-in-out infinite",
+        "rotate-hue": "rotateHue 20s linear infinite",
+        "mesh-morph": "meshMorph 12s ease-in-out infinite",
+        "hexagon-spin": "hexagonSpin 15s linear infinite",
+        "grid-pulse": "gridPulse 6s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -86,6 +97,69 @@ export default {
         pulseSoft: {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.8" },
+        },
+        floatSlow: {
+          "0%, 100%": { transform: "translateY(0px) rotate(0deg)" },
+          "50%": { transform: "translateY(-20px) rotate(180deg)" },
+        },
+        floatMedium: {
+          "0%, 100%": { transform: "translateX(0px) translateY(0px) rotate(0deg)" },
+          "33%": { transform: "translateX(30px) translateY(-30px) rotate(120deg)" },
+          "66%": { transform: "translateX(-20px) translateY(20px) rotate(240deg)" },
+        },
+        floatFast: {
+          "0%, 100%": { transform: "translateY(0px) translateX(0px) scale(1)" },
+          "25%": { transform: "translateY(-15px) translateX(15px) scale(1.1)" },
+          "75%": { transform: "translateY(15px) translateX(-15px) scale(0.9)" },
+        },
+        waveFlow: {
+          "0%, 100%": { transform: "translateX(-100%) skewX(0deg)", opacity: "0.1" },
+          "50%": { transform: "translateX(100%) skewX(-5deg)", opacity: "0.3" },
+        },
+        gradientShift: {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        particleFloat: {
+          "0%": { transform: "translateY(0px) translateX(0px) scale(0)", opacity: "0" },
+          "10%": { opacity: "1", transform: "scale(1)" },
+          "90%": { opacity: "1" },
+          "100%": { transform: "translateY(-100vh) translateX(50px) scale(0)", opacity: "0" },
+        },
+        pulseGlow: {
+          "0%, 100%": { opacity: "0.1", transform: "scale(1)" },
+          "50%": { opacity: "0.3", transform: "scale(1.05)" },
+        },
+        rotateHue: {
+          "0%": { filter: "hue-rotate(0deg)" },
+          "100%": { filter: "hue-rotate(360deg)" },
+        },
+        meshMorph: {
+          "0%, 100%": { 
+            borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+            transform: "rotate(0deg) scale(1)"
+          },
+          "25%": { 
+            borderRadius: "30% 70% 40% 60% / 50% 60% 40% 50%",
+            transform: "rotate(90deg) scale(1.1)"
+          },
+          "50%": { 
+            borderRadius: "70% 30% 60% 40% / 40% 70% 30% 60%",
+            transform: "rotate(180deg) scale(0.9)"
+          },
+          "75%": { 
+            borderRadius: "40% 60% 70% 30% / 30% 40% 60% 70%",
+            transform: "rotate(270deg) scale(1.05)"
+          },
+        },
+        hexagonSpin: {
+          "0%": { transform: "rotate(0deg) scale(1)", opacity: "0.1" },
+          "50%": { transform: "rotate(180deg) scale(1.2)", opacity: "0.2" },
+          "100%": { transform: "rotate(360deg) scale(1)", opacity: "0.1" },
+        },
+        gridPulse: {
+          "0%, 100%": { opacity: "0.05", transform: "scale(1)" },
+          "50%": { opacity: "0.15", transform: "scale(1.02)" },
         },
       },
       backdropBlur: {
