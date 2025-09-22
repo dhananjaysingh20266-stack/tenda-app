@@ -1,11 +1,11 @@
 service: gaming-key-platform-api
-frameworkVersion: '3'
+frameworkVersion: "3"
 
 provider:
   name: aws
   runtime: nodejs18.x
   stage: ${opt:stage, 'dev'}
-  region: ${opt:region, 'us-east-1'}
+  region: ${opt:region, 'ap-south-1'}
   environment:
     NODE_ENV: ${self:provider.stage}
     DB_HOST: ${env:DB_HOST, 'localhost'}

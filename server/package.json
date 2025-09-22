@@ -4,9 +4,9 @@
   "description": "Serverless API for Gaming Key Platform",
   "main": "index.js",
   "scripts": {
-    "dev": "serverless offline start",
-    "deploy:dev": "serverless deploy --stage dev",
-    "deploy:prod": "serverless deploy --stage prod",
+    "dev": "serverless offline start --stage dev --region ap-south-1",
+    "deploy:dev": "serverless deploy --stage dev --region ap-south-1",
+    "deploy:prod": "serverless deploy --stage prod --region ap-south-1",
     "seed": "node src/seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
