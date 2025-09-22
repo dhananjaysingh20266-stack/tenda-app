@@ -5,6 +5,7 @@ const { generateToken } = require('../../utils/jwt')
 const { Common } = require('../../helpers/Common')
 const { Messages } = require('../../helpers/Messages')
 const { Constants } = require('../../helpers/Constants')
+const { ApiResponseHandler } = require('../../helpers/api-response-handler')
 
 const login = async (event, context) => {
   try {
@@ -14,7 +15,7 @@ const login = async (event, context) => {
     // Validate input
     const { error, value } = loginSchema.validate(payloadData)
     if (error) {
-      return Common.response(false, Messages.VLD_ERR(error), 0, null, Constants.STATUS_BAD_REQUEST)
+      return ApiResponseHandler.legacyResponse(false, Messages.VLD_ERR(error), 0, null, Constants.STATUS_BAD_REQUEST)
     }
 
     const { email, password, loginType } = value
@@ -25,7 +26,7 @@ const login = async (event, context) => {
     })
 
     if (!user) {
-      return Common.response(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
+      return ApiResponseHandler.legacyResponse(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
     }
 
     // Check password
@@ -38,12 +39,12 @@ const login = async (event, context) => {
           lockedUntil: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
         })
       }
-      return Common.response(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
+      return ApiResponseHandler.legacyResponse(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
     }
 
     // Check if account is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      return Common.response(false, Messages.ACCOUNT_LOCKED, 0, null, Constants.STATUS_LOCKED)
+      return ApiResponseHandler.legacyResponse(false, Messages.ACCOUNT_LOCKED, 0, null, Constants.STATUS_LOCKED)
     }
 
     let organization = null
@@ -55,7 +56,7 @@ const login = async (event, context) => {
       })
 
       if (!organization) {
-        return Common.response(false, Messages.ACCESS_DENIED, 0, null, Constants.STATUS_FORBIDDEN)
+        return ApiResponseHandler.legacyResponse(false, Messages.ACCESS_DENIED, 0, null, Constants.STATUS_FORBIDDEN)
       }
     }
 
@@ -93,11 +94,13 @@ const login = async (event, context) => {
       expiresIn: 7 * 24 * 60 * 60 // 7 days in seconds
     }
 
-    return Common.response(true, Messages.LOGIN_SUCCESS, 1, responseData, Constants.STATUS_SUCCESS)
+    return ApiResponseHandler.legacyResponse(true, Messages.LOGIN_SUCCESS, 1, responseData, Constants.STATUS_SUCCESS)
 
   } catch (error) {
     console.error('Login error:', error)
-    return Common.response(false, Messages.INTERNAL_ERROR, 0, null, Constants.STATUS_INTERNAL_ERROR)
+    // Using the new exception handler for better error management
+    const errorResponse = ApiResponseHandler.handleException(error, 'Login')
+    return ApiResponseHandler.legacyResponse(false, errorResponse.message, 0, null, Constants.STATUS_INTERNAL_ERROR)
   }
 }
 

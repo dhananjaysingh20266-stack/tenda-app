@@ -1,12 +1,13 @@
 const { ApiResponse } = require('../../utils/response')
 const { createResponse } = require('../../utils/lambda')
+const { ApiResponseHandler } = require('../../helpers/api-response-handler')
 
 const getPricing = async (event, context) => {
   try {
     const { gameId } = event.pathParameters || {}
 
     if (!gameId) {
-      return createResponse(400, ApiResponse.error('Game ID is required'))
+      return ApiResponseHandler.httpError('Game ID is required', null, 400)
     }
 
     // Mock pricing data
@@ -54,13 +55,13 @@ const getPricing = async (event, context) => {
 
     const pricing = pricingData[gameId]
     if (!pricing) {
-      return createResponse(404, ApiResponse.error('Pricing not found for this game'))
+      return ApiResponseHandler.httpError('Pricing not found for this game', null, 404)
     }
 
-    return createResponse(200, ApiResponse.success(pricing, 'Pricing retrieved successfully'))
+    return ApiResponseHandler.httpSuccess(pricing, 'Pricing retrieved successfully')
   } catch (error) {
     console.error('Get pricing error:', error)
-    return createResponse(500, ApiResponse.error('Internal server error'))
+    return ApiResponseHandler.handleHttpException(error, 'Get Pricing')
   }
 }
 
