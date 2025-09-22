@@ -1,9 +1,11 @@
 const Messages = {
   VLD_ERR: (error) => 'Validation Error: ' + (error.details ? error.details.map((d) => d.message).join(', ') : error.message),
   NO_USER_FOUND: 'User not found',
+  USER_NOT_FOUND: 'User not found',
   NO_ORGANIZATION_FOUND: 'Organization not found',
   NO_GAME_FOUND: 'Game not found',
   INVALID_CREDENTIALS: 'Invalid credentials',
+  INVALID_TOKEN: 'Invalid token',
   ACCESS_DENIED: 'Access denied',
   ACCOUNT_LOCKED: 'Account temporarily locked',
   USER_EXISTS: 'User already exists',
