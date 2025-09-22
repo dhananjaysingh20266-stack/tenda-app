@@ -4,7 +4,8 @@ const Common = {
     message, 
     count = 0, 
     data = null, 
-    statusCode = 200
+    statusCode = 200,
+    showToast = true
   ) => {
     return {
       statusCode: statusCode,
@@ -19,6 +20,7 @@ const Common = {
         message,
         count,
         data,
+        showToast,
         timestamp: new Date().toISOString()
       })
     }

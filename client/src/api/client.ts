@@ -35,9 +35,21 @@ class ApiClient {
 
     // Response interceptor
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        // Check if the response has showToast flag and handle success messages
+        const responseData = response.data
+        if (responseData?.showToast !== false && responseData?.success && responseData?.message) {
+          // Only show success toasts for non-GET requests to avoid noise
+          const isGetRequest = response.config.method?.toLowerCase() === 'get'
+          if (!isGetRequest) {
+            toast.success(responseData.message)
+          }
+        }
+        return response
+      },
       (error) => {
         const { status } = error.response || {}
+        const responseData = error.response?.data
         
         if (status === 401) {
           useAuthStore.getState().logout()
@@ -47,6 +59,12 @@ class ApiClient {
           toast.error('Access denied')
         } else if (status >= 500) {
           toast.error('Server error. Please try again later.')
+        } else if (responseData?.showToast !== false && responseData?.message) {
+          // Show error message from API response if showToast is not explicitly false
+          toast.error(responseData.message)
+        } else if (responseData?.showToast !== false && responseData?.errors?.length > 0) {
+          // Show validation errors if showToast is not explicitly false
+          responseData.errors.forEach((errorMsg: string) => toast.error(errorMsg))
         }
         
         return Promise.reject(error)
