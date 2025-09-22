@@ -102,6 +102,15 @@ export interface LoginForm {
   loginType: 'organization' | 'individual'
 }
 
+export interface SignupForm {
+  email: string
+  password: string
+  confirmPassword: string
+  firstName: string
+  lastName: string
+  organizationName: string
+}
+
 export interface KeyGenerationForm {
   gameId: number
   maxDevices: number

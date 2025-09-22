@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Eye, EyeOff, LogIn, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useLogin } from '@/hooks/useAuth'
 import type { LoginForm as LoginFormType } from '@/types'
 import ToggleSwitch from '@/components/ui/ToggleSwitch'
@@ -257,6 +257,23 @@ const LoginPage = () => {
                   )}
                 </span>
               </motion.button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+              className="text-center"
+            >
+              <p className="text-sm text-gray-600">
+                Don't have an account?{' '}
+                <Link
+                  to="/signup"
+                  className="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200"
+                >
+                  Sign up here
+                </Link>
+              </p>
             </motion.div>
           </form>
         </motion.div>
