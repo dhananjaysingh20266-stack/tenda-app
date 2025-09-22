@@ -1,4 +1,4 @@
-service: gaming-key-platform-api
+service: tenda-app-api
 frameworkVersion: "3"
 
 provider:
@@ -28,6 +28,13 @@ plugins:
   - serverless-dotenv-plugin
 
 functions:
+  internal:
+    handler: src/functions/internal/db.handler
+    events:
+      - http:
+          path: /internal
+          method: post
+          cors: true
   # Authentication (JavaScript converted)
   login:
     handler: src/functions/auth/login.handler
@@ -52,15 +59,6 @@ functions:
       - http:
           path: /games/{gameId}/pricing
           method: get
-          cors: true
-
-  # Internal API for database sync
-  syncTables:
-    handler: src/functions/internal/syncTables.handler
-    events:
-      - http:
-          path: /internal/sync-tables
-          method: post
           cors: true
 
   # Original TypeScript functions (will need conversion)

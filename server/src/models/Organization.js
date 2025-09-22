@@ -1,5 +1,5 @@
-const { DataTypes, Model } = require('sequelize')
-const sequelize = require('../config/database')
+const { DataTypes, Model } = require("sequelize");
+const sequelize = require("../config/sequelize");
 
 class Organization extends Model {}
 
@@ -30,8 +30,8 @@ Organization.init(
       type: DataTypes.BIGINT,
       allowNull: false,
       references: {
-        model: 'users',
-        key: 'id',
+        model: "users",
+        key: "id",
       },
     },
     logoUrl: {
@@ -51,9 +51,9 @@ Organization.init(
       allowNull: true,
     },
     subscriptionTier: {
-      type: DataTypes.ENUM('free', 'basic', 'premium', 'enterprise'),
+      type: DataTypes.ENUM("free", "basic", "premium", "enterprise"),
       allowNull: false,
-      defaultValue: 'free',
+      defaultValue: "free",
     },
     billingEmail: {
       type: DataTypes.STRING(255),
@@ -79,17 +79,17 @@ Organization.init(
   },
   {
     sequelize,
-    tableName: 'organizations',
+    tableName: "organizations",
     indexes: [
       {
         unique: true,
-        fields: ['slug'],
+        fields: ["slug"],
       },
       {
-        fields: ['ownerId'],
+        fields: ["ownerId"],
       },
     ],
   }
-)
+);
 
-module.exports = Organization
+module.exports = Organization;

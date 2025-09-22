@@ -1,4 +1,5 @@
 const { Sequelize } = require("sequelize");
+const sequelize = require("./sequelize");
 
 // Read-Only connection configuration
 const readerConfig = {
@@ -34,58 +35,60 @@ const writerConfig = {
   },
 };
 
-// Create default sequelize instance for models (uses RW config)
-const sequelize = new Sequelize(writerConfig);
-
 let readerConnection = null;
 let writerConnection = null;
 
 // Read-Only database connection
 const connectToDatabase_RO = async () => {
+  const models = {
+    User,
+    Organization,
+    Game,
+  };
   if (readerConnection) {
     console.log("=> Using existing RO connection.");
-    return readerConnection;
+    return models;
   }
-  
-  readerConnection = new Sequelize(readerConfig);
-  await readerConnection.authenticate();
-  console.log("=> Created a new RO connection.");
-  return readerConnection;
+  try {
+    readerConnection = new Sequelize(readerConfig);
+    await readerConnection.authenticate();
+    console.log("=> Created a new RO connection.");
+    return models;
+  } catch (error) {
+    console.error("Unable to connect to the RO database:", error);
+  }
 };
 
 // Read-Write database connection
 const connectToDatabase_RW = async () => {
+  const models = {
+    User,
+    Organization,
+    Game,
+  };
   if (writerConnection) {
     console.log("=> Using existing RW connection.");
-    return writerConnection;
+    return models;
   }
-  
-  writerConnection = new Sequelize(writerConfig);
-  await writerConnection.authenticate();
-  console.log("=> Created a new RW connection.");
-  return writerConnection;
-};
-
-// Legacy support - use RW connection by default
-const connection = {};
-const legacyConnect = async () => {
-  const Models = {};
-  if (connection.isConnected) {
-    console.log("=> Using existing connection.");
-    return Models;
+  try {
+    writerConnection = new Sequelize(writerConfig);
+    await writerConnection.authenticate();
+    console.log("=> Created a new RW connection.");
+    return models;
+  } catch (error) {
+    console.error("Unable to connect to the RW database:", error);
   }
-  await sequelize.authenticate();
-  connection.isConnected = true;
-  console.log("=> Created a new connection.");
-  return Models;
 };
-
-// Export default sequelize instance for models
+async function syncAllModels() {
+  // Require models here to ensure they are registered with sequelize
+  const { User, Organization, Game } = require("../models");
+  const models = [User, Organization, Game];
+  for (const model of models) {
+    await model.sync({ alter: true });
+  }
+  console.log("✅ All models synced and tables created/updated!");
+}
 module.exports = sequelize;
 module.exports.connectToDatabase_RO = connectToDatabase_RO;
 module.exports.connectToDatabase_RW = connectToDatabase_RW;
-module.exports.legacyConnect = legacyConnect;
-
-// usage
-//    const reader = await connectToDatabase_RO();
-//    const writer = await connectToDatabase_RW();
+module.exports.syncAllModels = syncAllModels;

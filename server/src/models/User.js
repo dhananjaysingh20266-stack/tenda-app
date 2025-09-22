@@ -1,5 +1,5 @@
-const { DataTypes, Model } = require('sequelize')
-const sequelize = require('../config/database')
+const { DataTypes, Model } = require("sequelize");
+const sequelize = require("../config/sequelize");
 
 class User extends Model {}
 
@@ -75,14 +75,14 @@ User.init(
   },
   {
     sequelize,
-    tableName: 'users',
+    tableName: "users",
     indexes: [
       {
         unique: true,
-        fields: ['email'],
+        fields: ["email"],
       },
     ],
   }
-)
+);
 
-module.exports = User
+module.exports = User;
