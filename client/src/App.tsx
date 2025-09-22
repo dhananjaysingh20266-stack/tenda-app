@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import Layout from '@/components/layout/Layout'
 import LoginPage from '@/pages/auth/LoginPage'
+import SignupPage from '@/pages/auth/SignupPage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import ServicesPage from '@/pages/services/ServicesPage'
 import KeyGenerationPage from '@/pages/services/KeyGenerationPage'
@@ -36,6 +37,14 @@ function App() {
           isAuthenticated ? 
           <Navigate to={user?.type === 'organization' ? '/dashboard' : '/services'} /> : 
           <LoginPage />
+        } 
+      />
+      <Route 
+        path="/signup" 
+        element={
+          isAuthenticated ? 
+          <Navigate to={user?.type === 'organization' ? '/dashboard' : '/services'} /> : 
+          <SignupPage />
         } 
       />
 
