@@ -83,6 +83,7 @@ export interface ApiResponse<T> {
   data: T
   message?: string
   errors?: string[]
+  showToast?: boolean
 }
 
 export interface PaginatedResponse<T> {
