@@ -78,6 +78,18 @@ functions:
           path: /users
           method: get
           cors: true
+      - http:
+          path: /users/invite
+          method: post
+          cors: true
+      - http:
+          path: /users/{userId}
+          method: put
+          cors: true
+      - http:
+          path: /users/{userId}
+          method: delete
+          cors: true
 
   createUser:
     handler: src/functions/users/createUser.handler
@@ -91,7 +103,61 @@ functions:
     handler: src/functions/users/updateUser.handler
     events:
       - http:
-          path: /users/{id}
+          path: /users/{userId}/update
+          method: put
+          cors: true
+
+  # Analytics
+  getAnalytics:
+    handler: src/functions/analytics/getAnalytics.handler
+    events:
+      - http:
+          path: /analytics/overview
+          method: get
+          cors: true
+      - http:
+          path: /analytics/usage
+          method: get
+          cors: true
+      - http:
+          path: /analytics/games
+          method: get
+          cors: true
+      - http:
+          path: /analytics/activity
+          method: get
+          cors: true
+
+  # Settings
+  getSettings:
+    handler: src/functions/settings/getSettings.handler
+    events:
+      - http:
+          path: /settings/profile
+          method: get
+          cors: true
+      - http:
+          path: /settings/profile
+          method: put
+          cors: true
+      - http:
+          path: /settings/password
+          method: put
+          cors: true
+      - http:
+          path: /settings/organization
+          method: get
+          cors: true
+      - http:
+          path: /settings/organization
+          method: put
+          cors: true
+      - http:
+          path: /settings/notifications
+          method: get
+          cors: true
+      - http:
+          path: /settings/notifications
           method: put
           cors: true
 
