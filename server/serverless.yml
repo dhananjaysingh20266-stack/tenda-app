@@ -54,6 +54,15 @@ functions:
           method: get
           cors: true
 
+  # Internal API for database sync
+  syncTables:
+    handler: src/functions/internal/syncTables.handler
+    events:
+      - http:
+          path: /internal/sync-tables
+          method: post
+          cors: true
+
   # Original TypeScript functions (will need conversion)
   register:
     handler: src/functions/auth/register.handler

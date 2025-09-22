@@ -1,6 +1,6 @@
-import Joi from 'joi'
+const Joi = require('joi')
 
-export const generateKeysSchema = Joi.object({
+const generateKeysSchema = Joi.object({
   gameId: Joi.number()
     .integer()
     .positive()
@@ -60,3 +60,7 @@ export const generateKeysSchema = Joi.object({
       'string.max': 'Description cannot exceed 255 characters',
     }),
 })
+
+module.exports = {
+  generateKeysSchema
+}
