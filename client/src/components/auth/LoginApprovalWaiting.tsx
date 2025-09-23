@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { loginRequestsApi } from '@/api'
 import { Clock, Shield, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import type { User, Organization } from '@/types'
 
 interface LoginApprovalWaitingProps {
   requestId: number
-  onApproved: (userData: any) => void
+  onApproved: (userData: { user: User; organization: Organization | null; token: string; expiresIn: number }) => void
   onRejected: (reason?: string) => void
   onExpired: () => void
 }

@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import LoginApprovalWaiting from '@/components/auth/LoginApprovalWaiting'
 import toast from 'react-hot-toast'
+import type { User, Organization } from '@/types'
 
 const LoginWaitingPage = () => {
   const location = useLocation()
@@ -24,7 +25,7 @@ const LoginWaitingPage = () => {
     }
   }, [isAuthenticated, requestId, navigate])
 
-  const handleApproved = (userData: any) => {
+  const handleApproved = (userData: { user: User; organization: Organization | null; token: string; expiresIn: number }) => {
     // Store the authentication data
     const { setAuth } = useAuthStore.getState()
     

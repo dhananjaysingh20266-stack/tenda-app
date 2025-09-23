@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { ApiResponse, Game, LoginRequest } from '@/types'
+import type { ApiResponse, Game, LoginRequest, User, Organization, ApiKey, PaginatedResponse } from '@/types'
 
 // Games API
 export const gamesApi = {
@@ -40,7 +40,7 @@ export const keyGenerationApi = {
     if (params?.gameId) queryParams.append('gameId', params.gameId.toString())
     
     const queryString = queryParams.toString()
-    return apiClient.get<ApiResponse<{ keys: any[]; pagination: any }>>(`/my-keys${queryString ? `?${queryString}` : ''}`)
+    return apiClient.get<ApiResponse<{ keys: ApiKey[]; pagination: PaginatedResponse<ApiKey>['pagination'] }>>(`/my-keys${queryString ? `?${queryString}` : ''}`)
   },
 }
 
@@ -189,8 +189,8 @@ export const loginRequestsApi = {
 
   completeApprovedLogin: (requestId: number) => 
     apiClient.post<ApiResponse<{
-      user: any
-      organization: any
+      user: User
+      organization: Organization | null
       token: string
       expiresIn: number
     }>>(`/auth/login-requests/${requestId}/complete`),

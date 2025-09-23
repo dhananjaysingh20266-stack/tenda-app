@@ -2,8 +2,21 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { loginRequestsApi } from '@/api'
 import type { LoginRequest } from '@/types'
-import { Bell, UserCheck, UserX, Clock, User, Monitor } from 'lucide-react'
+import { Bell, UserCheck, UserX, Clock, User as UserIcon, Monitor } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+interface ExtendedLoginRequest extends LoginRequest {
+  user?: {
+    id: number
+    email: string
+    firstName: string
+    lastName: string
+  }
+  organization?: {
+    id: number
+    name: string
+  }
+}
 
 interface LoginApprovalNotificationProps {
   isOpen: boolean
@@ -11,7 +24,7 @@ interface LoginApprovalNotificationProps {
 }
 
 const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificationProps) => {
-  const [loginRequests, setLoginRequests] = useState<LoginRequest[]>([])
+  const [loginRequests, setLoginRequests] = useState<ExtendedLoginRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [processingRequestId, setProcessingRequestId] = useState<number | null>(null)
 
@@ -19,9 +32,9 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
   const fetchPendingRequests = async () => {
     try {
       const response = await loginRequestsApi.getPendingRequests()
-      setLoginRequests(response.data)
-    } catch (error) {
-      console.error('Failed to fetch pending requests:', error)
+      setLoginRequests(response.data as ExtendedLoginRequest[])
+    } catch {
+      console.error('Failed to fetch pending requests')
     } finally {
       setIsLoading(false)
     }
@@ -42,7 +55,7 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
       await loginRequestsApi.approveLoginRequest(requestId)
       toast.success('Login request approved!')
       fetchPendingRequests() // Refresh list
-    } catch (error) {
+    } catch {
       toast.error('Failed to approve login request')
     } finally {
       setProcessingRequestId(null)
@@ -55,7 +68,7 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
       await loginRequestsApi.rejectLoginRequest(requestId, 'Access denied by organization')
       toast.success('Login request rejected!')
       fetchPendingRequests() // Refresh list
-    } catch (error) {
+    } catch {
       toast.error('Failed to reject login request')
     } finally {
       setProcessingRequestId(null)
@@ -144,14 +157,14 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
                         <div className="flex-1">
                           <div className="flex items-center mb-2">
                             <div className="h-8 w-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
-                              <User className="h-4 w-4 text-white" />
+                              <UserIcon className="h-4 w-4 text-white" />
                             </div>
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                {(request as any).user ? `${(request as any).user.firstName} ${(request as any).user.lastName}` : `User ID: ${request.userId}`}
+                                {request.user ? `${request.user.firstName} ${request.user.lastName}` : `User ID: ${request.userId}`}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {(request as any).user?.email || `User ID: ${request.userId}`}
+                                {request.user?.email || `User ID: ${request.userId}`}
                               </p>
                               <div className="flex items-center text-xs text-gray-500">
                                 <Clock className="h-3 w-3 mr-1" />
