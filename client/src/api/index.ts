@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { ApiResponse, Game, PricingTier } from '@/types'
+import type { ApiResponse, Game } from '@/types'
 
 // Games API
 export const gamesApi = {
