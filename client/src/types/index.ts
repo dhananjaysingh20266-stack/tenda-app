@@ -71,7 +71,7 @@ export interface LoginRequest {
   deviceFingerprint: string
   ipAddress: string
   userAgent: string
-  status: 'pending' | 'approved' | 'rejected' | 'expired'
+  status: 'pending' | 'approved' | 'rejected' | 'expired' | 'completed'
   approvedBy?: number
   rejectionReason?: string
   expiresAt: string

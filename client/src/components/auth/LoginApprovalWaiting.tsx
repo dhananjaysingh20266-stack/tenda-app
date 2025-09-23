@@ -5,7 +5,7 @@ import { Clock, Shield, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 
 interface LoginApprovalWaitingProps {
   requestId: number
-  onApproved: () => void
+  onApproved: (userData: any) => void
   onRejected: (reason?: string) => void
   onExpired: () => void
 }
@@ -16,7 +16,7 @@ const LoginApprovalWaiting = ({
   onRejected, 
   onExpired 
 }: LoginApprovalWaitingProps) => {
-  const [status, setStatus] = useState<'pending' | 'approved' | 'rejected' | 'expired'>('pending')
+  const [status, setStatus] = useState<'pending' | 'approved' | 'rejected' | 'expired' | 'completed'>('pending')
   const [elapsedTime, setElapsedTime] = useState(0)
   const [dots, setDots] = useState('.')
 
@@ -30,7 +30,21 @@ const LoginApprovalWaiting = ({
 
         // Handle status changes
         if (newStatus === 'approved') {
-          onApproved()
+          // Complete the login flow when approved
+          try {
+            const completeResponse = await loginRequestsApi.completeApprovedLogin(requestId)
+            if (completeResponse.data && completeResponse.data.user) {
+              onApproved(completeResponse.data)
+            } else {
+              console.error('Failed to complete approved login:', completeResponse)
+              setStatus('expired') // Treat as expired if we can't complete
+              onExpired()
+            }
+          } catch (error) {
+            console.error('Failed to complete approved login:', error)
+            setStatus('expired') // Treat as expired if we can't complete
+            onExpired()
+          }
         } else if (newStatus === 'rejected') {
           onRejected('Login request was denied by the organization')
         } else if (newStatus === 'expired') {
@@ -80,6 +94,7 @@ const LoginApprovalWaiting = ({
   const getStatusIcon = () => {
     switch (status) {
       case 'approved':
+      case 'completed':
         return <CheckCircle className="h-8 w-8 text-green-500" />
       case 'rejected':
         return <XCircle className="h-8 w-8 text-red-500" />
@@ -93,7 +108,9 @@ const LoginApprovalWaiting = ({
   const getStatusMessage = () => {
     switch (status) {
       case 'approved':
-        return 'Login approved! Redirecting...'
+        return 'Login approved! Completing login...'
+      case 'completed':
+        return 'Login completed! Redirecting...'
       case 'rejected':
         return 'Login request was denied'
       case 'expired':

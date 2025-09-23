@@ -185,5 +185,13 @@ export const loginRequestsApi = {
     apiClient.put<ApiResponse<null>>(`/auth/login-requests/${requestId}/reject`, { reason }),
   
   checkLoginStatus: (requestId: number) => 
-    apiClient.get<ApiResponse<{ status: 'pending' | 'approved' | 'rejected' | 'expired' }>>(`/auth/login-requests/${requestId}/status`),
+    apiClient.get<ApiResponse<{ status: 'pending' | 'approved' | 'rejected' | 'expired' | 'completed' }>>(`/auth/login-requests/${requestId}/status`),
+
+  completeApprovedLogin: (requestId: number) => 
+    apiClient.post<ApiResponse<{
+      user: any
+      organization: any
+      token: string
+      expiresIn: number
+    }>>(`/auth/login-requests/${requestId}/complete`),
 }
