@@ -1,3 +1,4 @@
+const { ApiKey, Game } = require('../../models')
 const { Common } = require('../../helpers/Common')
 const { Messages } = require('../../helpers/Messages')
 const { Constants } = require('../../helpers/Constants')
@@ -5,7 +6,7 @@ const { verify } = require('../../helpers/Authorization')
 
 const getUserKeys = async (event, context) => {
   try {
-    const { userId, organizationId } = event.user || {}
+    const { userId, organizationId } = event.user || { userId: 1, organizationId: 1 } // Mock for now
 
     // Query parameters for pagination and filtering
     const { 
@@ -27,66 +28,49 @@ const getUserKeys = async (event, context) => {
       ...(gameId && { gameId: parseInt(gameId) })
     }
 
-    // Mock data for demo purposes - in production, this would query a Keys table
-    const mockKeys = [
-      {
-        id: 1,
-        keyId: 'key_12345678',
-        name: 'PUBG Mobile - 24h Key',
-        description: 'Demo key for testing',
-        gameId: 1,
-        gameName: 'PUBG Mobile',
-        maxDevices: 2,
-        durationHours: 24,
-        totalCost: 360,
-        currency: 'INR',
-        isActive: true,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        usageCount: 0,
-        deviceUsageCount: 0,
-        createdAt: new Date().toISOString(),
-        userId,
-        organizationId
-      },
-      {
-        id: 2,
-        keyId: 'key_87654321',
-        name: 'Free Fire - 12h Key',
-        description: 'Another demo key',
-        gameId: 2,
-        gameName: 'Free Fire',
-        maxDevices: 1,
-        durationHours: 12,
-        totalCost: 80,
-        currency: 'INR',
-        isActive: true,
-        expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
-        usageCount: 1,
-        deviceUsageCount: 1,
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        userId,
-        organizationId
-      }
-    ]
-
-    // Filter mock data based on criteria
-    const filteredKeys = mockKeys.filter(key => {
-      if (gameId && key.gameId !== parseInt(gameId)) return false
-      if (status === 'active' && !key.isActive) return false
-      if (status === 'inactive' && key.isActive) return false
-      return true
+    // Query keys from database with associations
+    const result = await ApiKey.findAndCountAll({
+      where: filters,
+      include: [
+        {
+          model: Game,
+          as: 'game',
+          attributes: ['name', 'slug', 'iconUrl']
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: limitNum,
+      offset: offset
     })
 
-    // Apply pagination
-    const paginatedKeys = filteredKeys.slice(offset, offset + limitNum)
+    // Format the response
+    const keys = result.rows.map(key => ({
+      id: key.id,
+      keyId: key.keyId,
+      name: key.name,
+      description: key.description,
+      gameId: key.gameId,
+      gameName: key.game?.name || 'Unknown Game',
+      maxDevices: key.maxDevices,
+      durationHours: key.durationHours,
+      costPerDevice: parseFloat(key.costPerDevice),
+      totalCost: parseFloat(key.totalCost),
+      currency: key.currency,
+      isActive: key.isActive,
+      expiresAt: key.expiresAt,
+      lastUsedAt: key.lastUsedAt,
+      usageCount: key.usageCount,
+      deviceUsageCount: key.deviceUsageCount,
+      createdAt: key.createdAt
+    }))
 
     const responseData = {
-      keys: paginatedKeys,
+      keys,
       pagination: {
         page: pageNum,
         limit: limitNum,
-        total: filteredKeys.length,
-        totalPages: Math.ceil(filteredKeys.length / limitNum)
+        total: result.count,
+        totalPages: Math.ceil(result.count / limitNum)
       },
       filters: {
         userId,
@@ -99,7 +83,7 @@ const getUserKeys = async (event, context) => {
     return Common.response(
       true, 
       Messages.KEYS_RETRIEVED, 
-      paginatedKeys.length, 
+      keys.length, 
       responseData, 
       Constants.STATUS_SUCCESS
     )

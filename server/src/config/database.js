@@ -44,6 +44,9 @@ const connectToDatabase_RO = async () => {
     User,
     Organization,
     Game,
+    ApiKey,
+    PricingTier,
+    OrganizationMember,
   };
   if (readerConnection) {
     console.log("=> Using existing RO connection.");
@@ -65,6 +68,9 @@ const connectToDatabase_RW = async () => {
     User,
     Organization,
     Game,
+    ApiKey,
+    PricingTier,
+    OrganizationMember,
   };
   if (writerConnection) {
     console.log("=> Using existing RW connection.");
@@ -81,8 +87,8 @@ const connectToDatabase_RW = async () => {
 };
 async function syncAllModels() {
   // Require models here to ensure they are registered with sequelize
-  const { User, Organization, Game } = require("../models");
-  const models = [User, Organization, Game];
+  const { User, Organization, Game, ApiKey, PricingTier, OrganizationMember } = require("../models");
+  const models = [User, Organization, Game, ApiKey, PricingTier, OrganizationMember];
   for (const model of models) {
     await model.sync({ alter: true });
   }

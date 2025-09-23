@@ -1,5 +1,48 @@
 import { apiClient } from './client'
-import type { ApiResponse } from '@/types'
+import type { ApiResponse, Game, PricingTier } from '@/types'
+
+// Games API
+export const gamesApi = {
+  getGames: () => 
+    apiClient.get<ApiResponse<Game[]>>('/games'),
+  
+  getGamePricing: (gameId: number) => 
+    apiClient.get<ApiResponse<{ gameId: number; gameName: string; currency: string; tiers: Array<{ durationHours: number; pricePerDevice: number }> }>>(`/games/${gameId}/pricing`),
+}
+
+// Key Generation API
+export interface KeyGenerationRequest {
+  gameId: number
+  maxDevices: number
+  durationHours: number
+  bulkQuantity: number
+  customKey?: string
+  description?: string
+}
+
+export interface GeneratedKey {
+  id: string
+  key: string
+  maxDevices: number
+  expiresAt: string
+  cost: number
+}
+
+export const keyGenerationApi = {
+  generateKeys: (data: KeyGenerationRequest) => 
+    apiClient.post<ApiResponse<{ batchId?: string; totalGenerated: number; keys: GeneratedKey[]; totalCost: number }>>('/key-generation/generate', data),
+  
+  getUserKeys: (params?: { page?: number; limit?: number; status?: string; gameId?: number }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.limit) queryParams.append('limit', params.limit.toString())
+    if (params?.status) queryParams.append('status', params.status)
+    if (params?.gameId) queryParams.append('gameId', params.gameId.toString())
+    
+    const queryString = queryParams.toString()
+    return apiClient.get<ApiResponse<{ keys: any[]; pagination: any }>>(`/my-keys${queryString ? `?${queryString}` : ''}`)
+  },
+}
 
 // Analytics API
 export interface AnalyticsOverview {

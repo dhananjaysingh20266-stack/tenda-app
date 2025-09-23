@@ -1,3 +1,4 @@
+const { Game, PricingTier } = require('../../models')
 const { ApiResponse } = require('../../utils/response')
 const { createResponse } = require('../../utils/lambda')
 
@@ -9,24 +10,47 @@ const getPricing = async (event, context) => {
       return createResponse(400, ApiResponse.error('Game ID is required'))
     }
 
-    // Mock pricing data
-    const pricingData = {
-      '1': {
-        gameId: 1,
-        gameName: 'PUBG Mobile',
-        currency: 'INR',
-        tiers: [
-          { durationHours: 1, pricePerDevice: 10 },
-          { durationHours: 3, pricePerDevice: 25 },
-          { durationHours: 5, pricePerDevice: 50 },
-          { durationHours: 12, pricePerDevice: 100 },
-          { durationHours: 24, pricePerDevice: 180 },
-          { durationHours: 168, pricePerDevice: 1000 }
-        ]
+    // Validate game exists and is active
+    const game = await Game.findByPk(gameId, {
+      where: { isActive: true }
+    })
+
+    if (!game) {
+      return createResponse(404, ApiResponse.error('Game not found or inactive'))
+    }
+
+    // Get pricing tiers for the game
+    const pricingTiers = await PricingTier.findAll({
+      where: { 
+        gameId: gameId,
+        isActive: true 
       },
-      '2': {
-        gameId: 2,
-        gameName: 'Free Fire',
+      order: [['durationHours', 'ASC']]
+    })
+
+    if (pricingTiers.length === 0) {
+      return createResponse(404, ApiResponse.error('Pricing not available for this game'))
+    }
+
+    // Format the response to match the expected structure
+    const pricing = {
+      gameId: parseInt(gameId),
+      gameName: game.name,
+      currency: pricingTiers[0].currency,
+      tiers: pricingTiers.map(tier => ({
+        durationHours: tier.durationHours,
+        pricePerDevice: parseFloat(tier.pricePerDevice)
+      }))
+    }
+
+    return createResponse(200, ApiResponse.success(pricing, 'Pricing retrieved successfully'))
+  } catch (error) {
+    console.error('Get pricing error:', error)
+    return createResponse(500, ApiResponse.error('Internal server error'))
+  }
+}
+
+module.exports = { handler: getPricing }
         currency: 'INR',
         tiers: [
           { durationHours: 1, pricePerDevice: 8 },
