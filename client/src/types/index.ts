@@ -4,6 +4,7 @@ export interface User {
   firstName: string
   lastName: string
   type: 'organization' | 'individual'
+  userType?: 'Owner' | 'Member'
   isActive: boolean
   emailVerified: boolean
   createdAt: string

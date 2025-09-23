@@ -65,8 +65,8 @@ const LoginPage = () => {
   // Dynamic description based on selection
   const getDescription = () => {
     return isIndividual 
-      ? "Access services as a member"
-      : "Manage your organization and members"
+      ? "Login as a member to access services individually"
+      : "Login as an organization owner to manage your organization"
   }
 
   return (

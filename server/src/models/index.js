@@ -4,6 +4,7 @@ const Game = require('./Game')
 const ApiKey = require('./ApiKey')
 const PricingTier = require('./PricingTier')
 const OrganizationMember = require('./OrganizationMember')
+const UserTypeLookup = require('./UserTypeLookup')
 
 // Define associations
 Organization.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' })
@@ -12,6 +13,10 @@ User.hasOne(Organization, { foreignKey: 'ownerId', as: 'ownedOrganization' })
 // User-Organization relationship (for direct organization membership)
 User.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' })
 Organization.hasMany(User, { foreignKey: 'organizationId', as: 'directMembers' })
+
+// User Type Lookup relationship
+User.belongsTo(UserTypeLookup, { foreignKey: 'userTypId', as: 'userType' })
+UserTypeLookup.hasMany(User, { foreignKey: 'userTypId', as: 'users' })
 
 // API Key associations
 ApiKey.belongsTo(User, { foreignKey: 'userId', as: 'user' })
@@ -40,5 +45,6 @@ module.exports = {
   Game,
   ApiKey,
   PricingTier,
-  OrganizationMember
+  OrganizationMember,
+  UserTypeLookup
 }

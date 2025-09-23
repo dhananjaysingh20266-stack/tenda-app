@@ -42,6 +42,14 @@ User.init(
         key: "id",
       },
     },
+    userTypId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "user_typ_lkup",
+        key: "id",
+      },
+    },
     emailVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

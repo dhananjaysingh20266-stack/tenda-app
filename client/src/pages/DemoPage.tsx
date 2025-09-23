@@ -22,7 +22,7 @@ const DemoMemberInvitation = () => {
   const [role, setRole] = useState('member')
   const [password, setPassword] = useState('aK8#mN9$xP2w')
   const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, _setIsSubmitting] = useState(false)
 
   const generatePassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&'
@@ -270,7 +270,7 @@ const DemoLoginApproval = () => {
 
 // Demo component for login approval waiting
 const DemoLoginWaiting = () => {
-  const [elapsedTime, setElapsedTime] = useState(125) // 2:05
+  const [elapsedTime, _setElapsedTime] = useState(125) // 2:05
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
