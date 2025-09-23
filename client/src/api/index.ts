@@ -176,7 +176,7 @@ export const membersApi = {
 // Login Requests API
 export const loginRequestsApi = {
   getPendingRequests: () => 
-    apiClient.get<ApiResponse<LoginRequest[]>>('/auth/login-requests/pending'),
+    apiClient.get<ApiResponse<LoginRequest[]>>('/dev/auth/login-requests/pending'),
   
   approveLoginRequest: (requestId: number) => 
     apiClient.put<ApiResponse<null>>(`/auth/login-requests/${requestId}/approve`),

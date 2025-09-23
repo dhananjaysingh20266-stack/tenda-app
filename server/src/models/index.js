@@ -5,6 +5,7 @@ const ApiKey = require('./ApiKey')
 const PricingTier = require('./PricingTier')
 const OrganizationMember = require('./OrganizationMember')
 const UserTypeLookup = require('./UserTypeLookup')
+const LoginRequest = require('./LoginRequest')
 
 // Define associations
 Organization.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' })
@@ -39,6 +40,14 @@ OrganizationMember.belongsTo(User, { foreignKey: 'invitedBy', as: 'inviter' })
 User.hasMany(OrganizationMember, { foreignKey: 'userId', as: 'memberships' })
 Organization.hasMany(OrganizationMember, { foreignKey: 'organizationId', as: 'members' })
 
+// Login Request associations
+LoginRequest.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+LoginRequest.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' })
+LoginRequest.belongsTo(User, { foreignKey: 'approvedBy', as: 'approver' })
+
+User.hasMany(LoginRequest, { foreignKey: 'userId', as: 'loginRequests' })
+Organization.hasMany(LoginRequest, { foreignKey: 'organizationId', as: 'loginRequests' })
+
 module.exports = {
   User,
   Organization,
@@ -46,5 +55,6 @@ module.exports = {
   ApiKey,
   PricingTier,
   OrganizationMember,
-  UserTypeLookup
+  UserTypeLookup,
+  LoginRequest
 }
