@@ -3,6 +3,8 @@ import { useAuthStore } from '@/store/authStore'
 import Layout from '@/components/layout/Layout'
 import LoginPage from '@/pages/auth/LoginPage'
 import SignupPage from '@/pages/auth/SignupPage'
+import LoginWaitingPage from '@/pages/auth/LoginWaitingPage'
+import DemoPage from '@/pages/DemoPage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import ServicesPage from '@/pages/services/ServicesPage'
 import KeyGenerationPage from '@/pages/services/KeyGenerationPage'
@@ -40,6 +42,16 @@ function App() {
           isAuthenticated ? 
           <Navigate to={user?.type === 'organization' ? '/dashboard' : '/services'} /> : 
           <LoginPage />
+        } 
+      />
+      <Route path="/demo" element={<DemoPage />} />
+      
+      <Route 
+        path="/login/waiting" 
+        element={
+          isAuthenticated ? 
+          <Navigate to={user?.type === 'organization' ? '/dashboard' : '/services'} /> : 
+          <LoginWaitingPage />
         } 
       />
       <Route 

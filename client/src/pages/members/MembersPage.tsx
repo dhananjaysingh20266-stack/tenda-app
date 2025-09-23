@@ -16,7 +16,11 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  Copy,
+  RefreshCw,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 
 interface Member {
@@ -119,21 +123,53 @@ const MembersPage = () => {
   const InviteModal = () => {
     const [email, setEmail] = useState('')
     const [role, setRole] = useState('member')
+    const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Generate random password
+    const generatePassword = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&'
+      let result = ''
+      for (let i = 0; i < 12; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length))
+      }
+      setPassword(result)
+    }
+
+    // Auto-generate password on modal open
+    useEffect(() => {
+      if (showInviteModal && !password) {
+        generatePassword()
+      }
+    }, [showInviteModal, password])
+
+    // Copy password to clipboard
+    const copyPassword = async () => {
+      try {
+        await navigator.clipboard.writeText(password)
+        toast.success('Password copied to clipboard!')
+      } catch (error) {
+        toast.error('Failed to copy password')
+      }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault()
       try {
         setIsSubmitting(true)
-        await membersApi.inviteMember({ email, role })
+        await membersApi.inviteMember({ email, role, password })
         // Refresh members list
         const response = await membersApi.getMembers()
         setMembers(response.data)
         setShowInviteModal(false)
         setEmail('')
         setRole('member')
+        setPassword('')
+        toast.success('Member invited successfully!')
       } catch (error) {
         console.error('Failed to invite member:', error)
+        toast.error('Failed to invite member')
       } finally {
         setIsSubmitting(false)
       }
@@ -179,6 +215,57 @@ const MembersPage = () => {
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="flex items-center justify-between">
+                  <span>Temporary Password</span>
+                  <motion.button
+                    type="button"
+                    onClick={generatePassword}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="text-xs text-primary-600 hover:text-primary-800 flex items-center"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Regenerate
+                  </motion.button>
+                </div>
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input pr-20"
+                  placeholder="Auto-generated password"
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center">
+                  <motion.button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    onClick={copyPassword}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="p-2 text-gray-400 hover:text-primary-600 transition-colors mr-1"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </motion.button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Member can use this password for individual login. Password can be edited if needed.
+              </p>
             </div>
             
             <div className="flex space-x-3 pt-4">

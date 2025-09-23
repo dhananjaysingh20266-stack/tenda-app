@@ -1,14 +1,40 @@
-import { LogOut, User as UserIcon } from 'lucide-react'
+import { LogOut, User as UserIcon, Bell } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
+import { loginRequestsApi } from '@/api'
+import LoginApprovalNotification from '@/components/common/LoginApprovalNotification'
+import { motion } from 'framer-motion'
 
 const Header = () => {
   const { user, organization } = useAuthStore()
   const logoutMutation = useLogout()
+  const [showLoginApprovals, setShowLoginApprovals] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
 
   const handleLogout = () => {
     logoutMutation.mutate()
   }
+
+  // Only check for pending requests if user is organization owner/admin
+  useEffect(() => {
+    if (user?.type === 'organization') {
+      const checkPendingRequests = async () => {
+        try {
+          const response = await loginRequestsApi.getPendingRequests()
+          setPendingCount(response.data.length)
+        } catch (error) {
+          console.error('Failed to fetch pending requests:', error)
+        }
+      }
+
+      checkPendingRequests()
+      // Check every 5 seconds for new requests
+      const interval = setInterval(checkPendingRequests, 5000)
+      
+      return () => clearInterval(interval)
+    }
+  }, [user?.type])
 
   return (
     <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-6">
@@ -22,6 +48,27 @@ const Header = () => {
       </div>
       
       <div className="flex items-center space-x-4">
+        {/* Login Approval Bell - Only for organization users */}
+        {user?.type === 'organization' && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowLoginApprovals(true)}
+            className="relative p-2 text-gray-400 hover:text-primary-600 transition-colors"
+          >
+            <Bell className="h-5 w-5" />
+            {pendingCount > 0 && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium"
+              >
+                {pendingCount}
+              </motion.div>
+            )}
+          </motion.button>
+        )}
+        
         <div className="flex items-center space-x-2">
           <UserIcon className="h-5 w-5 text-gray-400" />
           <span className="text-sm font-medium text-gray-700">
@@ -41,6 +88,12 @@ const Header = () => {
           <span>Logout</span>
         </button>
       </div>
+
+      {/* Login Approval Notification Modal */}
+      <LoginApprovalNotification 
+        isOpen={showLoginApprovals}
+        onClose={() => setShowLoginApprovals(false)}
+      />
     </header>
   )
 }
