@@ -6,6 +6,7 @@ export interface LoginResponse {
   organization: Organization | null
   token: string
   expiresIn: number
+  requestId?: number // For pending individual login requests
 }
 
 export const authApi = {

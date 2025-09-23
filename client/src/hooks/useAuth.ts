@@ -12,6 +12,16 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: (data: LoginForm) => authApi.login(data),
     onSuccess: (response) => {
+      // Check if this is a pending approval case (HTTP 202)
+      if (response.data.requestId && !response.data.token) {
+        // Individual login waiting for approval
+        navigate('/login/waiting', { 
+          state: { requestId: response.data.requestId } 
+        })
+        return
+      }
+
+      // Normal login flow
       setAuth(response.data.user, response.data.organization, response.data.token)
       
       // Only show toast if not handled by interceptor
@@ -27,6 +37,15 @@ export const useLogin = () => {
       }
     },
     onError: (error: any) => {
+      // Handle 202 response (pending approval) - this might come as an "error" from axios
+      if (error.response?.status === 202) {
+        const { requestId } = error.response.data
+        navigate('/login/waiting', { 
+          state: { requestId } 
+        })
+        return
+      }
+
       // Only show toast if not handled by interceptor
       const responseData = error.response?.data
       if (responseData?.showToast === false) {

@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { ApiResponse, Game } from '@/types'
+import type { ApiResponse, Game, LoginRequest } from '@/types'
 
 // Games API
 export const gamesApi = {
@@ -163,7 +163,7 @@ export const membersApi = {
     return apiClient.get<ApiResponse<Member[]>>(`/users${queryString ? `?${queryString}` : ''}`)
   },
   
-  inviteMember: (data: { email: string; role?: string }) => 
+  inviteMember: (data: { email: string; role?: string; password?: string }) => 
     apiClient.post<ApiResponse<Member>>('/users/invite', data),
   
   updateMember: (userId: number, data: Partial<Member>) => 
@@ -171,4 +171,19 @@ export const membersApi = {
   
   removeMember: (userId: number) => 
     apiClient.delete<ApiResponse<null>>(`/users/${userId}`),
+}
+
+// Login Requests API
+export const loginRequestsApi = {
+  getPendingRequests: () => 
+    apiClient.get<ApiResponse<LoginRequest[]>>('/auth/login-requests/pending'),
+  
+  approveLoginRequest: (requestId: number) => 
+    apiClient.put<ApiResponse<null>>(`/auth/login-requests/${requestId}/approve`),
+  
+  rejectLoginRequest: (requestId: number, reason?: string) => 
+    apiClient.put<ApiResponse<null>>(`/auth/login-requests/${requestId}/reject`, { reason }),
+  
+  checkLoginStatus: (requestId: number) => 
+    apiClient.get<ApiResponse<{ status: 'pending' | 'approved' | 'rejected' | 'expired' }>>(`/auth/login-requests/${requestId}/status`),
 }
