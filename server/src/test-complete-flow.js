@@ -109,7 +109,7 @@ const testCompleteFlow = async () => {
     console.log('  ✓ Individual login supports members accessing services')
     console.log('  ✓ Organization login restricted to owners only')
     console.log('  ✓ Client-side types updated to include userType')
-    console.log('  ✓ Database migrations created for schema changes')
+    console.log('  ✓ Database schema managed with Sequelize sync')
     console.log('  ✓ UI updated to reflect new login flow descriptions')
 
   } catch (error) {
