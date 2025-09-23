@@ -9,6 +9,10 @@ const OrganizationMember = require('./OrganizationMember')
 Organization.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' })
 User.hasOne(Organization, { foreignKey: 'ownerId', as: 'ownedOrganization' })
 
+// User-Organization relationship (for direct organization membership)
+User.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' })
+Organization.hasMany(User, { foreignKey: 'organizationId', as: 'directMembers' })
+
 // API Key associations
 ApiKey.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 ApiKey.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' })

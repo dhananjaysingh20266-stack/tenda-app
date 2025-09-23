@@ -34,6 +34,14 @@ User.init(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    organizationId: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      references: {
+        model: "organizations",
+        key: "id",
+      },
+    },
     emailVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
