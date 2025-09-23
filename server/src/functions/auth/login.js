@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { User, Organization } = require("../../models");
+const { User, Organization, UserTypeLookup, OrganizationMember } = require("../../models");
 const { loginSchema } = require("../../validators/auth");
 const { generateToken } = require("../../utils/jwt");
 const { Common } = require("../../helpers/Common");
@@ -19,9 +19,15 @@ const login = async (event, context) => {
 
     const { email, password, loginType } = value;
 
-    // Find user
+    // Find user with user type information
     const user = await User.findOne({
       where: { email, isActive: true },
+      include: [
+        {
+          model: UserTypeLookup,
+          as: 'userType',
+        }
+      ]
     });
 
     if (!user) {
@@ -47,15 +53,44 @@ const login = async (event, context) => {
     }
 
     let organization = null;
+    let userTypeInfo = user.userType?.name || null;
 
     if (loginType === "organization") {
-      // Organization login
+      // Organization login - only owners can login as organization
+      if (userTypeInfo !== "Owner") {
+        return Common.response(false, "Only organization owners can login as organization", 0, null, Constants.STATUS_FORBIDDEN);
+      }
+      
       organization = await Organization.findOne({
         where: { ownerId: user.id, isActive: true },
       });
 
       if (!organization) {
         return Common.response(false, Messages.ACCESS_DENIED, 0, null, Constants.STATUS_FORBIDDEN);
+      }
+    } else if (loginType === "individual") {
+      // Individual login - members and owners can login individually
+      // For members, get their organization information through membership
+      if (userTypeInfo === "Member") {
+        const membership = await OrganizationMember.findOne({
+          where: { userId: user.id, status: 'active' },
+          include: [
+            {
+              model: Organization,
+              as: 'organization',
+              where: { isActive: true }
+            }
+          ]
+        });
+
+        if (membership) {
+          organization = membership.organization;
+        }
+      } else if (userTypeInfo === "Owner") {
+        // Owner can also login individually
+        organization = await Organization.findOne({
+          where: { ownerId: user.id, isActive: true },
+        });
       }
     }
 
@@ -71,6 +106,7 @@ const login = async (event, context) => {
       userId: user.id,
       organizationId: organization?.id,
       type: loginType,
+      userType: userTypeInfo,
     });
 
     // Remove password hash from response
@@ -80,6 +116,7 @@ const login = async (event, context) => {
       firstName: user.firstName,
       lastName: user.lastName,
       type: loginType,
+      userType: userTypeInfo,
       isActive: user.isActive,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,

@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs')
-const { User, Organization } = require('../../models')
+const { User, Organization, UserTypeLookup } = require('../../models')
 const { registerSchema } = require('../../validators/auth')
 const { ApiResponse } = require('../../utils/response')
 const { generateToken } = require('../../utils/jwt')
@@ -44,12 +44,21 @@ const register = async (event, context) => {
     const saltRounds = 12
     const passwordHash = await bcrypt.hash(password, saltRounds)
 
+    // Get Owner user type
+    const ownerType = await UserTypeLookup.findOne({ 
+      where: { name: 'Owner', isActive: true } 
+    })
+    if (!ownerType) {
+      return createResponse(500, ApiResponse.error('Owner user type not found. Please seed the database.'))
+    }
+
     // Create user and organization in a transaction
     const user = await User.create({
       email,
       passwordHash,
       firstName,
       lastName,
+      userTypId: ownerType.id,
       isActive: true,
       emailVerified: false,
       loginAttempts: 0,
@@ -67,7 +76,8 @@ const register = async (event, context) => {
     const token = generateToken({
       userId: user.id,
       organizationId: organization.id,
-      type: 'organization'
+      type: 'organization',
+      userType: 'Owner'
     })
 
     // Remove password hash from response
@@ -77,6 +87,7 @@ const register = async (event, context) => {
       firstName: user.firstName,
       lastName: user.lastName,
       type: 'organization',
+      userType: 'Owner',
       isActive: user.isActive,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
