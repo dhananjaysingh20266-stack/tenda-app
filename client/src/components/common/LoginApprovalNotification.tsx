@@ -148,7 +148,10 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
                             </div>
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                User ID: {request.userId}
+                                {(request as any).user ? `${(request as any).user.firstName} ${(request as any).user.lastName}` : `User ID: ${request.userId}`}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {(request as any).user?.email || `User ID: ${request.userId}`}
                               </p>
                               <div className="flex items-center text-xs text-gray-500">
                                 <Clock className="h-3 w-3 mr-1" />
