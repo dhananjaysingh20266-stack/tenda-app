@@ -7,6 +7,9 @@ import DashboardPage from '@/pages/dashboard/DashboardPage'
 import ServicesPage from '@/pages/services/ServicesPage'
 import KeyGenerationPage from '@/pages/services/KeyGenerationPage'
 import OrganizationPage from '@/pages/organization/OrganizationPage'
+import SettingsPage from '@/pages/settings/SettingsPage'
+import AnalyticsPage from '@/pages/analytics/AnalyticsPage'
+import MembersPage from '@/pages/members/MembersPage'
 import ProtectedRoute from '@/components/common/ProtectedRoute'
 
 function App() {
@@ -60,6 +63,9 @@ function App() {
         {/* Organization Routes */}
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/organization" element={<OrganizationPage />} />
+        <Route path="/users" element={<MembersPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         
         {/* Individual User Routes */}
         <Route path="/services" element={<ServicesPage />} />

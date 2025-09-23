@@ -1,0 +1,131 @@
+import { apiClient } from './client'
+import type { ApiResponse } from '@/types'
+
+// Analytics API
+export interface AnalyticsOverview {
+  totalUsers: number
+  activeKeys: number
+  totalUsage: number
+  avgSessionTime: string
+}
+
+export interface UsageData {
+  daily: Array<{ date: string; keys: number; users: number }>
+  weekly: Array<{ week: string; keys: number; users: number }>
+  monthly: Array<{ month: string; keys: number; users: number }>
+}
+
+export interface GameAnalytics {
+  name: string
+  usage: number
+  change: number
+}
+
+export interface ActivityItem {
+  id: number
+  user: string
+  action: string
+  time: string
+  type: 'success' | 'warning' | 'info'
+}
+
+export const analyticsApi = {
+  getOverview: () => 
+    apiClient.get<ApiResponse<AnalyticsOverview>>('/analytics/overview'),
+  
+  getUsageData: (timeRange?: string) => 
+    apiClient.get<ApiResponse<UsageData>>(`/analytics/usage${timeRange ? `?timeRange=${timeRange}` : ''}`),
+  
+  getTopGames: () => 
+    apiClient.get<ApiResponse<GameAnalytics[]>>('/analytics/games'),
+  
+  getRecentActivity: () => 
+    apiClient.get<ApiResponse<ActivityItem[]>>('/analytics/activity'),
+}
+
+// Settings API
+export interface UserProfile {
+  id: number
+  email: string
+  firstName: string
+  lastName: string
+  isActive: boolean
+  emailVerified: boolean
+}
+
+export interface OrganizationSettings {
+  id: number
+  name: string
+  description?: string
+  website?: string
+  industry?: string
+  companySize?: string
+  billingEmail?: string
+}
+
+export interface NotificationPreferences {
+  keyGenerationAlerts: boolean
+  securityAlerts: boolean
+  usageReports: boolean
+  teamUpdates: boolean
+}
+
+export const settingsApi = {
+  // Profile
+  getProfile: () => 
+    apiClient.get<ApiResponse<UserProfile>>('/settings/profile'),
+  
+  updateProfile: (data: Partial<UserProfile>) => 
+    apiClient.put<ApiResponse<UserProfile>>('/settings/profile', data),
+  
+  updatePassword: (data: { currentPassword: string; newPassword: string }) => 
+    apiClient.put<ApiResponse<null>>('/settings/password', data),
+  
+  // Organization
+  getOrganizationSettings: () => 
+    apiClient.get<ApiResponse<OrganizationSettings>>('/settings/organization'),
+  
+  updateOrganizationSettings: (data: Partial<OrganizationSettings>) => 
+    apiClient.put<ApiResponse<OrganizationSettings>>('/settings/organization', data),
+  
+  // Notifications
+  getNotificationPreferences: () => 
+    apiClient.get<ApiResponse<NotificationPreferences>>('/settings/notifications'),
+  
+  updateNotificationPreferences: (data: Partial<NotificationPreferences>) => 
+    apiClient.put<ApiResponse<NotificationPreferences>>('/settings/notifications', data),
+}
+
+// Members API
+export interface Member {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  role: 'admin' | 'member' | 'viewer'
+  status: 'active' | 'pending' | 'inactive'
+  lastActive: string
+  joinedAt: string
+  permissions: string[]
+}
+
+export const membersApi = {
+  getMembers: (params?: { status?: string; role?: string; search?: string }) => {
+    const queryParams = new URLSearchParams()
+    if (params?.status) queryParams.append('status', params.status)
+    if (params?.role) queryParams.append('role', params.role)
+    if (params?.search) queryParams.append('search', params.search)
+    
+    const queryString = queryParams.toString()
+    return apiClient.get<ApiResponse<Member[]>>(`/users${queryString ? `?${queryString}` : ''}`)
+  },
+  
+  inviteMember: (data: { email: string; role?: string }) => 
+    apiClient.post<ApiResponse<Member>>('/users/invite', data),
+  
+  updateMember: (userId: number, data: Partial<Member>) => 
+    apiClient.put<ApiResponse<Member>>(`/users/${userId}`, data),
+  
+  removeMember: (userId: number) => 
+    apiClient.delete<ApiResponse<null>>(`/users/${userId}`),
+}
