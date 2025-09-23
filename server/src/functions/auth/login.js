@@ -1,61 +1,61 @@
-const bcrypt = require('bcryptjs')
-const { User, Organization } = require('../../models')
-const { loginSchema } = require('../../validators/auth')
-const { generateToken } = require('../../utils/jwt')
-const { Common } = require('../../helpers/Common')
-const { Messages } = require('../../helpers/Messages')
-const { Constants } = require('../../helpers/Constants')
+const bcrypt = require("bcryptjs");
+const { User, Organization } = require("../../models");
+const { loginSchema } = require("../../validators/auth");
+const { generateToken } = require("../../utils/jwt");
+const { Common } = require("../../helpers/Common");
+const { Messages } = require("../../helpers/Messages");
+const { Constants } = require("../../helpers/Constants");
 
 const login = async (event, context) => {
   try {
     // Parse request body
-    const payloadData = Common.parseBody(event.body)
-    
+    const payloadData = Common.parseBody(event.body);
+
     // Validate input
-    const { error, value } = loginSchema.validate(payloadData)
+    const { error, value } = loginSchema.validate(payloadData);
     if (error) {
-      return Common.response(false, Messages.VLD_ERR(error), 0, null, Constants.STATUS_BAD_REQUEST)
+      return Common.response(false, Messages.VLD_ERR(error), 0, null, Constants.STATUS_BAD_REQUEST);
     }
 
-    const { email, password, loginType } = value
+    const { email, password, loginType } = value;
 
     // Find user
     const user = await User.findOne({
-      where: { email, isActive: true }
-    })
+      where: { email, isActive: true },
+    });
 
     if (!user) {
-      return Common.response(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
+      return Common.response(false, Messages.USER_NOT_FOUND, 0, null, Constants.STATUS_BAD_REQUEST);
     }
 
     // Check password
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash)
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
       // Increment login attempts
-      await user.increment('loginAttempts')
+      await user.increment("loginAttempts");
       if (user.loginAttempts >= 5) {
         await user.update({
-          lockedUntil: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
-        })
+          lockedUntil: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
+        });
       }
-      return Common.response(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_UNAUTHORIZED)
+      return Common.response(false, Messages.INVALID_CREDENTIALS, 0, null, Constants.STATUS_BAD_REQUEST);
     }
 
     // Check if account is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      return Common.response(false, Messages.ACCOUNT_LOCKED, 0, null, Constants.STATUS_LOCKED)
+      return Common.response(false, Messages.ACCOUNT_LOCKED, 0, null, Constants.STATUS_LOCKED);
     }
 
-    let organization = null
+    let organization = null;
 
-    if (loginType === 'organization') {
+    if (loginType === "organization") {
       // Organization login
       organization = await Organization.findOne({
-        where: { ownerId: user.id, isActive: true }
-      })
+        where: { ownerId: user.id, isActive: true },
+      });
 
       if (!organization) {
-        return Common.response(false, Messages.ACCESS_DENIED, 0, null, Constants.STATUS_FORBIDDEN)
+        return Common.response(false, Messages.ACCESS_DENIED, 0, null, Constants.STATUS_FORBIDDEN);
       }
     }
 
@@ -63,15 +63,15 @@ const login = async (event, context) => {
     await user.update({
       loginAttempts: 0,
       lockedUntil: null,
-      lastLogin: new Date()
-    })
+      lastLogin: new Date(),
+    });
 
     // Generate JWT token
     const token = generateToken({
       userId: user.id,
       organizationId: organization?.id,
-      type: loginType
-    })
+      type: loginType,
+    });
 
     // Remove password hash from response
     const userResponse = {
@@ -83,22 +83,21 @@ const login = async (event, context) => {
       isActive: user.isActive,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt
-    }
+      updatedAt: user.updatedAt,
+    };
 
     const responseData = {
       user: userResponse,
       organization,
       token,
-      expiresIn: 7 * 24 * 60 * 60 // 7 days in seconds
-    }
+      expiresIn: 7 * 24 * 60 * 60, // 7 days in seconds
+    };
 
-    return Common.response(true, Messages.LOGIN_SUCCESS, 1, responseData, Constants.STATUS_SUCCESS)
-
+    return Common.response(true, Messages.LOGIN_SUCCESS, 1, responseData, Constants.STATUS_SUCCESS);
   } catch (error) {
-    console.error('Login error:', error)
-    return Common.response(false, Messages.INTERNAL_ERROR, 0, null, Constants.STATUS_INTERNAL_ERROR)
+    console.error("Login error:", error);
+    return Common.response(false, Messages.INTERNAL_ERROR, 0, null, Constants.STATUS_INTERNAL_ERROR);
   }
-}
+};
 
-module.exports = { handler: login }
+module.exports = { handler: login };

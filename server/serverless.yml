@@ -35,7 +35,6 @@ functions:
           path: /internal
           method: post
           cors: true
-  # Authentication (JavaScript converted)
   login:
     handler: src/functions/auth/login.handler
     events:
@@ -43,8 +42,6 @@ functions:
           path: /auth/login
           method: post
           cors: true
-
-  # Services (JavaScript converted)
   getGames:
     handler: src/functions/services/getGames.handler
     events:
@@ -60,8 +57,6 @@ functions:
           path: /games/{gameId}/pricing
           method: get
           cors: true
-
-  # Original TypeScript functions (will need conversion)
   register:
     handler: src/functions/auth/register.handler
     events:
@@ -77,18 +72,6 @@ functions:
       - http:
           path: /users
           method: get
-          cors: true
-      - http:
-          path: /users/invite
-          method: post
-          cors: true
-      - http:
-          path: /users/{userId}
-          method: put
-          cors: true
-      - http:
-          path: /users/{userId}
-          method: delete
           cors: true
 
   createUser:
