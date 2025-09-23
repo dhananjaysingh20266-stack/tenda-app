@@ -79,3 +79,14 @@ Thumbs.db
 # Logs
 logs
 *.log
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# Test files
+src/create-test-data.js
+src/create-owner-request.js
+src/approve-member-request.js
+src/update-demo-user.js
