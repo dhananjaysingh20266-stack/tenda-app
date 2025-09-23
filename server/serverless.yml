@@ -82,6 +82,14 @@ functions:
           method: post
           cors: true
 
+  inviteUser:
+    handler: src/functions/users/inviteUser.handler
+    events:
+      - http:
+          path: /users/invite
+          method: post
+          cors: true
+
   updateUser:
     handler: src/functions/users/updateUser.handler
     events:
