@@ -4,7 +4,7 @@
   "description": "Serverless API for Gaming Key Platform",
   "main": "index.js",
   "scripts": {
-    "dev": "serverless offline start --stage dev --region ap-south-1 --noTimeout",
+    "dev": "serverless offline start --stage dev --region ap-south-1 --noTimeout --reloadHandler",
     "deploy:dev": "serverless deploy --stage dev --region ap-south-1",
     "deploy:prod": "serverless deploy --stage prod --region ap-south-1",
     "seed": "node src/seed.js",

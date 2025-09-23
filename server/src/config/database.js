@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const sequelize = require("./sequelize");
+const { User, Organization, Game, ApiKey, PricingTier, OrganizationMember, UserTypeLookup } = require("../models");
 
 // Read-Only connection configuration
 const readerConfig = {
@@ -9,7 +10,7 @@ const readerConfig = {
   username: process.env.DB_USER_RO || process.env.DB_USER || "postgres",
   password: process.env.DB_PASSWORD_RO || process.env.DB_PASSWORD || "",
   dialect: "postgres",
-  logging: process.env.NODE_ENV === "development" ? true : false,
+  logging: process.env.NODE_ENV === "dev" ? true : false,
   pool: {
     max: 3,
     min: 0,
@@ -47,6 +48,7 @@ const connectToDatabase_RO = async () => {
     ApiKey,
     PricingTier,
     OrganizationMember,
+    UserTypeLookup,
   };
   if (readerConnection) {
     console.log("=> Using existing RO connection.");
@@ -86,9 +88,7 @@ const connectToDatabase_RW = async () => {
   }
 };
 async function syncAllModels() {
-  // Require models here to ensure they are registered with sequelize
-  const { User, Organization, Game, ApiKey, PricingTier, OrganizationMember } = require("../models");
-  const models = [User, Organization, Game, ApiKey, PricingTier, OrganizationMember];
+  const models = [User, Organization, Game, ApiKey, PricingTier, OrganizationMember, UserTypeLookup];
   for (const model of models) {
     await model.sync({ alter: true });
   }
