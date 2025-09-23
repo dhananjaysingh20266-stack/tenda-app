@@ -1,5 +1,5 @@
 require('dotenv').config()
-const sequelize = require('./config/database')
+const sequelize = require('./config/sequelize')
 const { User, Organization, Game, PricingTier } = require('./models')
 const bcrypt = require('bcryptjs')
 

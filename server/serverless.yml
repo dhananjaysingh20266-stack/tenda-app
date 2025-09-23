@@ -65,6 +65,14 @@ functions:
           method: post
           cors: true
 
+  getPendingLoginRequests:
+    handler: src/functions/auth/getPendingLoginRequests.handler
+    events:
+      - http:
+          path: /dev/auth/login-requests/pending
+          method: get
+          cors: true
+
   # Users
   getUsers:
     handler: src/functions/users/getUsers.handler
