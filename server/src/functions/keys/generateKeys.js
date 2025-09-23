@@ -1,18 +1,11 @@
 const { generateKeysSchema } = require('../../validators/keys')
-const { Game } = require('../../models')
+const { Game, PricingTier, ApiKey } = require('../../models')
 const { v4: uuidv4 } = require('uuid')
 const crypto = require('crypto')
 const { Common } = require('../../helpers/Common')
 const { Messages } = require('../../helpers/Messages')
 const { Constants } = require('../../helpers/Constants')
 const { verify } = require('../../helpers/Authorization')
-
-// Mock pricing data
-const pricingData = {
-  1: { 1: 10, 3: 25, 5: 50, 12: 100, 24: 180, 168: 1000 }, // PUBG Mobile
-  2: { 1: 8, 3: 20, 5: 40, 12: 80, 24: 150, 168: 800 },   // Free Fire
-  3: { 1: 12, 3: 30, 5: 60, 12: 120, 24: 200, 168: 1200 }, // COD Mobile
-}
 
 const generateKeys = async (event, context) => {
   try {
@@ -34,6 +27,10 @@ const generateKeys = async (event, context) => {
       description
     } = value
 
+    // For now, we'll use a mock user ID - this should come from authentication
+    const userId = 1
+    const organizationId = 1
+
     // Validate game exists
     const game = await Game.findByPk(gameId)
 
@@ -41,11 +38,20 @@ const generateKeys = async (event, context) => {
       return Common.response(false, Messages.NO_GAME_FOUND, 0, null, Constants.STATUS_NOT_FOUND)
     }
 
-    // Get pricing
-    const pricePerDevice = pricingData[gameId]?.[durationHours]
-    if (!pricePerDevice) {
+    // Get pricing from database
+    const pricingTier = await PricingTier.findOne({
+      where: {
+        gameId,
+        durationHours,
+        isActive: true
+      }
+    })
+
+    if (!pricingTier) {
       return Common.response(false, 'Pricing not available for selected duration', 0, null, Constants.STATUS_NOT_FOUND)
     }
+
+    const pricePerDevice = parseFloat(pricingTier.pricePerDevice)
 
     // Calculate costs
     const totalCostPerKey = pricePerDevice * maxDevices
@@ -57,7 +63,7 @@ const generateKeys = async (event, context) => {
     const generatedKeys = []
     const expiresAt = new Date(Date.now() + durationHours * 60 * 60 * 1000)
 
-    // Generate keys
+    // Generate and store keys in database
     for (let i = 0; i < bulkQuantity; i++) {
       let keyValue
       if (customKey) {
@@ -66,8 +72,27 @@ const generateKeys = async (event, context) => {
         keyValue = `${game.slug.toUpperCase()}_${crypto.randomBytes(8).toString('hex').toUpperCase()}`
       }
 
+      const keyId = uuidv4()
+      
+      // Store key in database
+      const apiKey = await ApiKey.create({
+        keyId,
+        name: customKey || `${game.name} Key`,
+        description: description || `Generated key for ${game.name}`,
+        gameId,
+        userId,
+        organizationId,
+        maxDevices,
+        durationHours,
+        costPerDevice: pricePerDevice,
+        totalCost: totalCostPerKey,
+        currency: pricingTier.currency,
+        expiresAt,
+        isActive: true
+      })
+
       generatedKeys.push({
-        id: `key_${uuidv4().slice(0, 8)}`,
+        id: keyId,
         key: keyValue,
         maxDevices,
         expiresAt: expiresAt.toISOString(),

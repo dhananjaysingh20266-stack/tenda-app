@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Key, Download } from 'lucide-react'
-import type { KeyGenerationForm as KeyGenerationFormType } from '@/types'
+import type { KeyGenerationForm as KeyGenerationFormType, Game } from '@/types'
+import { gamesApi, keyGenerationApi } from '@/api'
+import toast from 'react-hot-toast'
 
 const keyGenerationSchema = z.object({
   gameId: z.number().min(1, 'Please select a game'),
@@ -17,6 +19,9 @@ const keyGenerationSchema = z.object({
 const KeyGenerationPage = () => {
   const [generatedKeys, setGeneratedKeys] = useState<any[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
+  const [games, setGames] = useState<Game[]>([])
+  const [pricingData, setPricingData] = useState<{ [gameId: number]: { [duration: number]: number } }>({})
+  const [isLoadingGames, setIsLoadingGames] = useState(true)
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<KeyGenerationFormType>({
     resolver: zodResolver(keyGenerationSchema),
@@ -30,11 +35,43 @@ const KeyGenerationPage = () => {
 
   const watchedValues = watch()
 
-  const games = [
-    { id: 1, name: 'PUBG Mobile', slug: 'pubg-mobile' },
-    { id: 2, name: 'Free Fire', slug: 'free-fire' },
-    { id: 3, name: 'Call of Duty Mobile', slug: 'cod-mobile' },
-  ]
+  // Fetch games on component mount
+  useEffect(() => {
+    const fetchGames = async () => {
+      try {
+        setIsLoadingGames(true)
+        const response = await gamesApi.getGames()
+        if (response.success) {
+          setGames(response.data)
+          // Fetch pricing for all games
+          await Promise.all(response.data.map(game => fetchGamePricing(game.id)))
+        }
+      } catch (error) {
+        console.error('Failed to fetch games:', error)
+        toast.error('Failed to load games')
+      } finally {
+        setIsLoadingGames(false)
+      }
+    }
+
+    fetchGames()
+  }, [])
+
+  // Fetch pricing for a specific game
+  const fetchGamePricing = async (gameId: number) => {
+    try {
+      const response = await gamesApi.getGamePricing(gameId)
+      if (response.success) {
+        const gamePricing: { [duration: number]: number } = {}
+        response.data.tiers.forEach(tier => {
+          gamePricing[tier.durationHours] = tier.pricePerDevice
+        })
+        setPricingData(prev => ({ ...prev, [gameId]: gamePricing }))
+      }
+    } catch (error) {
+      console.error(`Failed to fetch pricing for game ${gameId}:`, error)
+    }
+  }
 
   const durations = [
     { hours: 1, label: '1 Hour' },
@@ -46,34 +83,52 @@ const KeyGenerationPage = () => {
   ]
 
   const calculateCost = () => {
-    const basePrices: { [key: number]: { [key: number]: number } } = {
-      1: { 1: 10, 3: 25, 5: 50, 12: 100, 24: 180, 168: 1000 }, // PUBG Mobile
-      2: { 1: 8, 3: 20, 5: 40, 12: 80, 24: 150, 168: 800 },   // Free Fire
-      3: { 1: 12, 3: 30, 5: 60, 12: 120, 24: 200, 168: 1200 }, // COD Mobile
-    }
-
-    const pricePerDevice = basePrices[watchedValues.gameId]?.[watchedValues.durationHours] || 0
+    const pricePerDevice = pricingData[watchedValues.gameId]?.[watchedValues.durationHours] || 0
     const totalCost = pricePerDevice * watchedValues.maxDevices * watchedValues.bulkQuantity
     return { pricePerDevice, totalCost }
   }
 
   const onSubmit = async (data: KeyGenerationFormType) => {
     setIsGenerating(true)
-    // Simulate API call
-    setTimeout(() => {
-      const mockKeys = Array.from({ length: data.bulkQuantity }, (_, i) => ({
-        id: `key_${Date.now()}_${i}`,
-        key: `GAME_${Math.random().toString(36).substring(2, 15).toUpperCase()}`,
+    try {
+      const response = await keyGenerationApi.generateKeys({
+        gameId: data.gameId,
         maxDevices: data.maxDevices,
-        expiresAt: new Date(Date.now() + data.durationHours * 60 * 60 * 1000).toISOString(),
-        cost: calculateCost().pricePerDevice * data.maxDevices,
-      }))
-      setGeneratedKeys(mockKeys)
+        durationHours: data.durationHours,
+        bulkQuantity: data.bulkQuantity,
+        customKey: data.customKey,
+        description: data.description,
+      })
+      
+      if (response.success) {
+        setGeneratedKeys(response.data.keys)
+        toast.success(`Successfully generated ${response.data.totalGenerated} key(s)`)
+      }
+    } catch (error) {
+      console.error('Failed to generate keys:', error)
+      toast.error('Failed to generate keys')
+    } finally {
       setIsGenerating(false)
-    }, 2000)
+    }
   }
 
   const { pricePerDevice, totalCost } = calculateCost()
+
+  if (isLoadingGames) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Key Generation</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Loading games and pricing...
+          </p>
+        </div>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

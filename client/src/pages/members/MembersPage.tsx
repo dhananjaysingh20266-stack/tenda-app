@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { membersApi } from '@/api'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { 
   Users, 
   Search, 
@@ -52,53 +53,8 @@ const MembersPage = () => {
         setMembers(response.data)
       } catch (error) {
         console.error('Failed to fetch members:', error)
-        // Fallback to mock data on error
-        setMembers([
-          {
-            id: 1,
-            firstName: 'John',
-            lastName: 'Doe',
-            email: 'john.doe@company.com',
-            role: 'admin',
-            status: 'active',
-            lastActive: '2 hours ago',
-            joinedAt: '2024-01-15',
-            permissions: ['manage_users', 'manage_keys', 'view_analytics']
-          },
-          {
-            id: 2,
-            firstName: 'Jane',
-            lastName: 'Smith',
-            email: 'jane.smith@company.com',
-            role: 'member',
-            status: 'active',
-            lastActive: '1 day ago',
-            joinedAt: '2024-01-20',
-            permissions: ['manage_keys', 'view_analytics']
-          },
-          {
-            id: 3,
-            firstName: 'Mike',
-            lastName: 'Johnson',
-            email: 'mike.johnson@company.com',
-            role: 'viewer',
-            status: 'pending',
-            lastActive: 'Never',
-            joinedAt: '2024-01-25',
-            permissions: ['view_analytics']
-          },
-          {
-            id: 4,
-            firstName: 'Sarah',
-            lastName: 'Wilson',
-            email: 'sarah.wilson@company.com',
-            role: 'member',
-            status: 'inactive',
-            lastActive: '2 weeks ago',
-            joinedAt: '2024-01-10',
-            permissions: ['manage_keys']
-          },
-        ])
+        toast.error('Failed to load members')
+        setMembers([]) // Clear members on error instead of showing mock data
       } finally {
         setIsLoading(false)
       }

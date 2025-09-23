@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { analyticsApi } from '@/api'
 import { motion } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { 
   BarChart3, 
   TrendingUp, 
@@ -64,49 +65,22 @@ const AnalyticsPage = () => {
         })
       } catch (error) {
         console.error('Failed to fetch analytics:', error)
-        // Fallback to mock data on error
+        toast.error('Failed to load analytics data')
+        // Set empty data on error instead of mock data
         setAnalyticsData({
           overview: {
-            totalUsers: 24,
-            activeKeys: 156,
-            totalUsage: 2340,
-            avgSessionTime: '2.4h'
+            totalUsers: 0,
+            activeKeys: 0,
+            totalUsage: 0,
+            avgSessionTime: 'N/A'
           },
           usage: {
-            daily: [
-              { date: '2024-01-01', keys: 45, users: 12 },
-              { date: '2024-01-02', keys: 52, users: 15 },
-              { date: '2024-01-03', keys: 38, users: 11 },
-              { date: '2024-01-04', keys: 67, users: 18 },
-              { date: '2024-01-05', keys: 71, users: 20 },
-              { date: '2024-01-06', keys: 59, users: 16 },
-              { date: '2024-01-07', keys: 63, users: 17 },
-            ],
-            weekly: [
-              { week: 'Week 1', keys: 320, users: 89 },
-              { week: 'Week 2', keys: 410, users: 102 },
-              { week: 'Week 3', keys: 380, users: 95 },
-              { week: 'Week 4', keys: 450, users: 118 },
-            ],
-            monthly: [
-              { month: 'Oct', keys: 1200, users: 280 },
-              { month: 'Nov', keys: 1450, users: 320 },
-              { month: 'Dec', keys: 1560, users: 404 },
-            ]
+            daily: [],
+            weekly: [],
+            monthly: []
           },
-          topGames: [
-            { name: 'PUBG Mobile', usage: 45, change: 12.5 },
-            { name: 'Free Fire', usage: 32, change: -2.3 },
-            { name: 'Call of Duty', usage: 28, change: 8.7 },
-            { name: 'Valorant', usage: 15, change: 15.2 },
-          ],
-          recentActivity: [
-            { id: 1, user: 'John Doe', action: 'generated 5 PUBG keys', time: '2 min ago', type: 'success' },
-            { id: 2, user: 'Jane Smith', action: 'joined the organization', time: '1 hour ago', type: 'info' },
-            { id: 3, user: 'System', action: 'exported API key batch', time: '3 hours ago', type: 'warning' },
-            { id: 4, user: 'Mike Johnson', action: 'updated security settings', time: '1 day ago', type: 'success' },
-            { id: 5, user: 'Sarah Wilson', action: 'reached usage limit', time: '2 days ago', type: 'warning' },
-          ]
+          topGames: [],
+          recentActivity: []
         })
       } finally {
         setIsLoading(false)
