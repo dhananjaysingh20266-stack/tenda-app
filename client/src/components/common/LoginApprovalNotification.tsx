@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { loginRequestsApi } from '@/api'
 import type { LoginRequest } from '@/types'
 import { Bell, UserCheck, UserX, Clock, User as UserIcon, Monitor } from 'lucide-react'
+import { useLoginRequestsPolling } from '@/hooks/useLoginRequestsPolling'
 import toast from 'react-hot-toast'
 
 interface ExtendedLoginRequest extends LoginRequest {
@@ -29,7 +30,7 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
   const [processingRequestId, setProcessingRequestId] = useState<number | null>(null)
 
   // Fetch pending login requests
-  const fetchPendingRequests = async () => {
+  const fetchPendingRequests = useCallback(async () => {
     try {
       const response = await loginRequestsApi.getPendingRequests()
       setLoginRequests(response.data as ExtendedLoginRequest[])
@@ -38,16 +39,10 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  // Auto-refresh every 5 seconds when component is open
-  useEffect(() => {
-    if (isOpen) {
-      fetchPendingRequests()
-      const interval = setInterval(fetchPendingRequests, 5000)
-      return () => clearInterval(interval)
-    }
-  }, [isOpen])
+  // Use optimized polling - every 1 minute and when window becomes visible
+  useLoginRequestsPolling(fetchPendingRequests, isOpen, [])
 
   const handleApprove = async (requestId: number) => {
     try {
@@ -216,7 +211,7 @@ const LoginApprovalNotification = ({ isOpen, onClose }: LoginApprovalNotificatio
             {/* Footer */}
             <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
               <p className="text-xs text-gray-500">
-                Auto-refreshes every 5 seconds • Click outside to close
+                Auto-refreshes every 1 minute • Click outside to close
               </p>
             </div>
           </motion.div>

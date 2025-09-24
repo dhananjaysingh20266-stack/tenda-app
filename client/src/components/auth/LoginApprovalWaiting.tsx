@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { loginRequestsApi } from '@/api'
 import { Clock, Shield, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { useLoginRequestsPolling } from '@/hooks/useLoginRequestsPolling'
 import type { User, Organization } from '@/types'
 
 interface LoginApprovalWaitingProps {
@@ -21,49 +22,42 @@ const LoginApprovalWaiting = ({
   const [elapsedTime, setElapsedTime] = useState(0)
   const [dots, setDots] = useState('.')
 
-  // Check login status every 5 seconds
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const response = await loginRequestsApi.checkLoginStatus(requestId)
-        const newStatus = response.data.status
-        setStatus(newStatus)
+  // Check login status with optimized polling
+  const checkStatus = useCallback(async () => {
+    try {
+      const response = await loginRequestsApi.checkLoginStatus(requestId)
+      const newStatus = response.data.status
+      setStatus(newStatus)
 
-        // Handle status changes
-        if (newStatus === 'approved') {
-          // Complete the login flow when approved
-          try {
-            const completeResponse = await loginRequestsApi.completeApprovedLogin(requestId)
-            if (completeResponse.data && completeResponse.data.user) {
-              onApproved(completeResponse.data)
-            } else {
-              console.error('Failed to complete approved login:', completeResponse)
-              setStatus('expired') // Treat as expired if we can't complete
-              onExpired()
-            }
-          } catch (error) {
-            console.error('Failed to complete approved login:', error)
+      // Handle status changes
+      if (newStatus === 'approved') {
+        // Complete the login flow when approved
+        try {
+          const completeResponse = await loginRequestsApi.completeApprovedLogin(requestId)
+          if (completeResponse.data && completeResponse.data.user) {
+            onApproved(completeResponse.data)
+          } else {
+            console.error('Failed to complete approved login:', completeResponse)
             setStatus('expired') // Treat as expired if we can't complete
             onExpired()
           }
-        } else if (newStatus === 'rejected') {
-          onRejected('Login request was denied by the organization')
-        } else if (newStatus === 'expired') {
+        } catch (error) {
+          console.error('Failed to complete approved login:', error)
+          setStatus('expired') // Treat as expired if we can't complete
           onExpired()
         }
-      } catch (error) {
-        console.error('Failed to check login status:', error)
+      } else if (newStatus === 'rejected') {
+        onRejected('Login request was denied by the organization')
+      } else if (newStatus === 'expired') {
+        onExpired()
       }
+    } catch (error) {
+      console.error('Failed to check login status:', error)
     }
-
-    // Initial check
-    checkStatus()
-
-    // Set up polling every 5 seconds
-    const statusInterval = setInterval(checkStatus, 5000)
-
-    return () => clearInterval(statusInterval)
   }, [requestId, onApproved, onRejected, onExpired])
+
+  // Use optimized polling - every 1 minute and when window becomes visible
+  useLoginRequestsPolling(checkStatus, status === 'pending', [requestId, onApproved, onRejected, onExpired])
 
   // Update elapsed time every second
   useEffect(() => {
@@ -251,7 +245,7 @@ const LoginApprovalWaiting = ({
             transition={{ delay: 0.7 }}
             className="text-center text-xs text-gray-400 mt-4"
           >
-            Status updates automatically every 5 seconds
+            Status updates automatically every 1 minute
           </motion.p>
         )}
       </motion.div>
