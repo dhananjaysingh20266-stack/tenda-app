@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { User, Organization, UserTypeLookup, OrganizationMember } = require("../../models");
+const { User, Organization, UserTypeLookup, OrganizationMember, LoginRequest } = require("../../models");
 const { loginSchema } = require("../../validators/auth");
 const { generateToken } = require("../../utils/jwt");
 const { Common } = require("../../helpers/Common");
@@ -70,7 +70,7 @@ const login = async (event, context) => {
       }
     } else if (loginType === "individual") {
       // Individual login - members and owners can login individually
-      // For members, get their organization information through membership
+      // For members, require organization approval first
       if (userTypeInfo === "Member") {
         const membership = await OrganizationMember.findOne({
           where: { userId: user.id, status: 'active' },
@@ -83,11 +83,74 @@ const login = async (event, context) => {
           ]
         });
 
-        if (membership) {
-          organization = membership.organization;
+        if (!membership) {
+          return Common.response(false, "Member not found in any active organization", 0, null, Constants.STATUS_FORBIDDEN);
         }
+
+        organization = membership.organization;
+
+        // Check for existing pending login request
+        const existingRequest = await LoginRequest.findOne({
+          where: { 
+            userId: user.id,
+            organizationId: organization.id,
+            status: 'pending',
+            expiresAt: {
+              [require('sequelize').Op.gt]: new Date()
+            }
+          },
+          order: [['createdAt', 'DESC']]
+        });
+
+        if (existingRequest) {
+          return Common.response(true, "Login request already pending approval", 1, {
+            message: "Your login request is pending approval from the organization administrators",
+            requestId: existingRequest.id,
+            expiresAt: existingRequest.expiresAt,
+            requiresApproval: true
+          }, Constants.STATUS_SUCCESS);
+        }
+
+        // Create a new login request that expires in 5 minutes
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
+        
+        // Get device information from request headers
+        const userAgent = event.headers?.['User-Agent'] || event.headers?.['user-agent'] || 'Unknown';
+        const ipAddress = event.requestContext?.identity?.sourceIp || 
+                         event.headers?.['X-Forwarded-For'] || 
+                         event.headers?.['x-forwarded-for'] ||
+                         'Unknown';
+        
+        const loginRequest = await LoginRequest.create({
+          userId: user.id,
+          organizationId: organization.id,
+          deviceFingerprint: null, // Could be enhanced with browser fingerprinting
+          ipAddress: ipAddress,
+          userAgent: userAgent,
+          browserInfo: {
+            userAgent: userAgent,
+            ipAddress: ipAddress,
+            timestamp: new Date().toISOString()
+          },
+          status: 'pending',
+          expiresAt: expiresAt
+        });
+
+        // Reset login attempts on successful login request creation
+        await user.update({
+          loginAttempts: 0,
+          lockedUntil: null,
+        });
+
+        return Common.response(true, "Login request submitted for approval", 1, {
+          message: "Your login request has been sent to the organization administrators for approval",
+          requestId: loginRequest.id,
+          expiresAt: loginRequest.expiresAt,
+          organizationName: organization.name,
+          requiresApproval: true
+        }, Constants.STATUS_SUCCESS);
       } else if (userTypeInfo === "Owner") {
-        // Owner can also login individually
+        // Owner can login individually without approval
         organization = await Organization.findOne({
           where: { ownerId: user.id, isActive: true },
         });

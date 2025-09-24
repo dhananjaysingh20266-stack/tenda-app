@@ -43,7 +43,7 @@ LoginRequest.init(
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM('pending', 'approved', 'rejected', 'expired'),
+      type: DataTypes.ENUM('pending', 'approved', 'rejected', 'expired', 'completed'),
       defaultValue: 'pending',
       allowNull: false,
     },

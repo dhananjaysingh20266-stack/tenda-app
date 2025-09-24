@@ -73,6 +73,38 @@ functions:
           method: get
           cors: true
 
+  approveLoginRequest:
+    handler: src/functions/auth/approveLoginRequest.handler
+    events:
+      - http:
+          path: /auth/login-requests/{requestId}/approve
+          method: put
+          cors: true
+
+  rejectLoginRequest:
+    handler: src/functions/auth/rejectLoginRequest.handler
+    events:
+      - http:
+          path: /auth/login-requests/{requestId}/reject
+          method: put
+          cors: true
+
+  checkLoginStatus:
+    handler: src/functions/auth/checkLoginStatus.handler
+    events:
+      - http:
+          path: /auth/login-requests/{requestId}/status
+          method: get
+          cors: true
+
+  completeApprovedLogin:
+    handler: src/functions/auth/completeApprovedLogin.handler
+    events:
+      - http:
+          path: /auth/login-requests/{requestId}/complete
+          method: post
+          cors: true
+
   # Users
   getUsers:
     handler: src/functions/users/getUsers.handler

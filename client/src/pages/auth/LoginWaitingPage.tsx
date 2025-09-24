@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import LoginApprovalWaiting from '@/components/auth/LoginApprovalWaiting'
 import toast from 'react-hot-toast'
+import type { User, Organization } from '@/types'
 
 const LoginWaitingPage = () => {
   const location = useLocation()
@@ -24,11 +25,15 @@ const LoginWaitingPage = () => {
     }
   }, [isAuthenticated, requestId, navigate])
 
-  const handleApproved = () => {
-    // In a real application, we might receive user data and token
-    // For now, redirect to login to complete the process
-    toast.success('Login approved! Please log in again to complete the process.')
-    navigate('/login/individual')
+  const handleApproved = (userData: { user: User; organization: Organization | null; token: string; expiresIn: number }) => {
+    // Store the authentication data
+    const { setAuth } = useAuthStore.getState()
+    
+    // Set user authentication data
+    setAuth(userData.user, userData.organization, userData.token)
+    
+    toast.success('Login approved! Welcome back!')
+    navigate('/services')
   }
 
   const handleRejected = (reason?: string) => {
