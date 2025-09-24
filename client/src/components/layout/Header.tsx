@@ -1,9 +1,10 @@
 import { LogOut, User as UserIcon, Bell, RefreshCw } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
 import { loginRequestsApi } from '@/api'
 import LoginApprovalNotification from '@/components/common/LoginApprovalNotification'
+import { useLoginRequestsPolling } from '@/hooks/useLoginRequestsPolling'
 import { motion } from 'framer-motion'
 
 const Header = () => {
@@ -16,25 +17,22 @@ const Header = () => {
     logoutMutation.mutate()
   }
 
-  // Only check for pending requests if user is organization owner/admin
-  useEffect(() => {
-    if (user?.type === 'organization') {
-      const checkPendingRequests = async () => {
-        try {
-          const response = await loginRequestsApi.getPendingRequests()
-          setPendingCount(response.data.length)
-        } catch (error) {
-          console.error('Failed to fetch pending requests:', error)
-        }
-      }
-
-      checkPendingRequests()
-      // Check every 5 seconds for new requests
-      const interval = setInterval(checkPendingRequests, 5000)
-      
-      return () => clearInterval(interval)
+  // Check for pending requests with optimized polling
+  const checkPendingRequests = useCallback(async () => {
+    try {
+      const response = await loginRequestsApi.getPendingRequests()
+      setPendingCount(response.data.length)
+    } catch (error) {
+      console.error('Failed to fetch pending requests:', error)
     }
-  }, [user?.type])
+  }, [])
+
+  // Use the new polling hook - polls every 1 minute and when window becomes visible
+  useLoginRequestsPolling(
+    checkPendingRequests,
+    user?.type === 'organization',
+    []
+  )
 
   return (
     <header className="bg-white shadow-sm border-b h-16 flex items-center justify-between px-6">

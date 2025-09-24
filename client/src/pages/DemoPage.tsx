@@ -262,7 +262,7 @@ const DemoLoginApproval = () => {
       {/* Footer */}
       <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
         <p className="text-xs text-gray-500">
-          Auto-refreshes every 5 seconds • Click outside to close
+          Auto-refreshes every 1 minute • Click outside to close
         </p>
       </div>
     </motion.div>
@@ -378,7 +378,7 @@ const DemoLoginWaiting = () => {
         transition={{ delay: 0.7 }}
         className="text-center text-xs text-gray-400 mt-4"
       >
-        Status updates automatically every 5 seconds
+        Status updates automatically every 1 minute
       </motion.p>
     </motion.div>
   )
@@ -572,7 +572,7 @@ const DemoPage = () => {
               </h2>
               <p className="text-gray-600 text-center mb-8 max-w-2xl mx-auto">
                 Individual members see this modern waiting screen while their login request is being reviewed.
-                Status updates automatically every 5 seconds with live polling.
+                Status updates automatically every 1 minute with live polling.
               </p>
               <div className="flex justify-center">
                 <DemoLoginWaiting />
@@ -636,8 +636,8 @@ const DemoPage = () => {
               <div className="h-12 w-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Clock className="h-6 w-6 text-white" />
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">5-Second Polling</h4>
-              <p className="text-sm text-gray-600">Automatic status updates every 5 seconds for real-time experience</p>
+              <h4 className="font-semibold text-gray-900 mb-2">1-Minute Polling</h4>
+              <p className="text-sm text-gray-600">Automatic status updates every 1 minute for efficient resource usage</p>
             </div>
             
             <div className="text-center">
