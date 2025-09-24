@@ -42,6 +42,13 @@ functions:
           path: /auth/login
           method: post
           cors: true
+  logout:
+    handler: src/functions/auth/logout.handler
+    events:
+      - http:
+          path: /auth/logout
+          method: post
+          cors: true
   getGames:
     handler: src/functions/services/getGames.handler
     events:

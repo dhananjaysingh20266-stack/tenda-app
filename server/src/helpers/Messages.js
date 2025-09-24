@@ -10,6 +10,7 @@ const Messages = {
   USER_EXISTS: "User already exists",
   INTERNAL_ERROR: "Internal server error",
   LOGIN_SUCCESS: "Login successful",
+  LOGOUT_SUCCESS: "Logout successful",
   REGISTER_SUCCESS: "Registration successful",
   KEYS_RETRIEVED: "Keys retrieved successfully",
   KEY_GENERATION_SUCCESS: "Key generation successful",
