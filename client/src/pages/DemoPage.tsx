@@ -13,7 +13,8 @@ import {
   Clock,
   Shield,
   CheckCircle,
-  XCircle
+  XCircle,
+  LogOut
 } from 'lucide-react'
 
 // Demo component to showcase the member invitation with password field
@@ -383,8 +384,117 @@ const DemoLoginWaiting = () => {
   )
 }
 
+// Demo component to showcase the logout button animations
+const DemoLogoutButton = () => {
+  const [isPending, setIsPending] = useState(false)
+
+  const handleLogout = () => {
+    setIsPending(true)
+    // Simulate logout process
+    setTimeout(() => {
+      setIsPending(false)
+    }, 2000)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl mx-4"
+    >
+      <h3 className="text-lg font-medium text-gray-900 mb-6 text-center">
+        Enhanced Logout Button Demo
+      </h3>
+      
+      {/* Mock Header */}
+      <div className="bg-gray-50 border rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-lg font-bold text-blue-600">Gaming Key Platform</h1>
+            <div className="text-sm text-gray-600">
+              Test Organization
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-700">
+                Test User
+              </span>
+              <span className="text-xs text-gray-500 capitalize">
+                (organization)
+              </span>
+            </div>
+            
+            {/* Enhanced Logout Button */}
+            <motion.button
+              onClick={handleLogout}
+              disabled={isPending}
+              whileHover={!isPending ? { scale: 1.05 } : {}}
+              whileTap={!isPending ? { scale: 0.95 } : {}}
+              className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 rounded-md border border-gray-200 hover:border-gray-300"
+            >
+              {isPending ? (
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  whileHover={{ x: 2 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <LogOut className="h-4 w-4" />
+                </motion.div>
+              )}
+              <span>{isPending ? 'Logging out...' : 'Logout'}</span>
+            </motion.button>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Description */}
+      <div className="space-y-4 text-sm text-gray-600">
+        <div className="flex items-start space-x-3">
+          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+          <div>
+            <strong>Hover Animation:</strong> Button scales up (1.05x) with smooth icon slide animation
+          </div>
+        </div>
+        <div className="flex items-start space-x-3">
+          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+          <div>
+            <strong>Tap Animation:</strong> Button scales down (0.95x) for tactile feedback
+          </div>
+        </div>
+        <div className="flex items-start space-x-3">
+          <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+          <div>
+            <strong>Loading State:</strong> Spinning refresh icon with "Logging out..." text
+          </div>
+        </div>
+        <div className="flex items-start space-x-3">
+          <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+          <div>
+            <strong>Disabled State:</strong> Reduced opacity and disabled interactions during loading
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+        <p className="text-sm text-blue-800">
+          <strong>Try it:</strong> Click the logout button above to see the smooth animations in action!
+        </p>
+      </div>
+    </motion.div>
+  )
+}
+
 const DemoPage = () => {
-  const [activeDemo, setActiveDemo] = useState<'invitation' | 'approval' | 'waiting'>('invitation')
+  const [activeDemo, setActiveDemo] = useState<'invitation' | 'approval' | 'waiting' | 'logout'>('invitation')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
@@ -409,7 +519,8 @@ const DemoPage = () => {
             {[
               { key: 'invitation', label: 'Member Invitation' },
               { key: 'approval', label: 'Login Approval' },
-              { key: 'waiting', label: 'Approval Waiting' }
+              { key: 'waiting', label: 'Approval Waiting' },
+              { key: 'logout', label: 'Logout Animation' }
             ].map(({ key, label }) => (
               <button
                 key={key}
@@ -465,6 +576,21 @@ const DemoPage = () => {
               </p>
               <div className="flex justify-center">
                 <DemoLoginWaiting />
+              </div>
+            </div>
+          )}
+
+          {activeDemo === 'logout' && (
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900 text-center mb-6">
+                Enhanced Logout Button Animations
+              </h2>
+              <p className="text-gray-600 text-center mb-8 max-w-2xl mx-auto">
+                Smooth and engaging animations for the logout button with hover effects, loading states, and tactile feedback.
+                Implemented using Framer Motion for professional user experience.
+              </p>
+              <div className="flex justify-center">
+                <DemoLogoutButton />
               </div>
             </div>
           )}
@@ -528,6 +654,14 @@ const DemoPage = () => {
               </div>
               <h4 className="font-semibold text-gray-900 mb-2">Modern UI/UX</h4>
               <p className="text-sm text-gray-600">Beautiful, user-friendly interfaces with smooth animations</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="h-12 w-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <LogOut className="h-6 w-6 text-white" />
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-2">Enhanced Logout Animations</h4>
+              <p className="text-sm text-gray-600">Smooth hover effects, loading states, and tactile feedback for logout button</p>
             </div>
           </div>
         </motion.div>

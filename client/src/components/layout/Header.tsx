@@ -1,4 +1,4 @@
-import { LogOut, User as UserIcon, Bell } from 'lucide-react'
+import { LogOut, User as UserIcon, Bell, RefreshCw } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { useLogout } from '@/hooks/useAuth'
@@ -79,14 +79,30 @@ const Header = () => {
           </span>
         </div>
         
-        <button
+        <motion.button
           onClick={handleLogout}
           disabled={logoutMutation.isPending}
-          className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+          whileHover={!logoutMutation.isPending ? { scale: 1.05 } : {}}
+          whileTap={!logoutMutation.isPending ? { scale: 0.95 } : {}}
+          className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <LogOut className="h-4 w-4" />
-          <span>Logout</span>
-        </button>
+          {logoutMutation.isPending ? (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </motion.div>
+          ) : (
+            <motion.div
+              whileHover={{ x: 2 }}
+              transition={{ duration: 0.2 }}
+            >
+              <LogOut className="h-4 w-4" />
+            </motion.div>
+          )}
+          <span>{logoutMutation.isPending ? 'Logging out...' : 'Logout'}</span>
+        </motion.button>
       </div>
 
       {/* Login Approval Notification Modal */}
