@@ -1,6 +1,6 @@
 const { Sequelize } = require("sequelize");
 const sequelize = require("./sequelize");
-const { User, Organization, Game, ApiKey, PricingTier, OrganizationMember, UserTypeLookup } = require("../models");
+const { User, Organization, Game, ApiKey, PricingTier, OrganizationMember, UserTypeLookup, LoginRequest } = require("../models");
 
 // Read-Only connection configuration
 const readerConfig = {
@@ -49,6 +49,7 @@ const connectToDatabase_RO = async () => {
     PricingTier,
     OrganizationMember,
     UserTypeLookup,
+    LoginRequest,
   };
   if (readerConnection) {
     console.log("=> Using existing RO connection.");
@@ -73,6 +74,7 @@ const connectToDatabase_RW = async () => {
     ApiKey,
     PricingTier,
     OrganizationMember,
+    LoginRequest,
   };
   if (writerConnection) {
     console.log("=> Using existing RW connection.");
@@ -88,7 +90,7 @@ const connectToDatabase_RW = async () => {
   }
 };
 async function syncAllModels() {
-  const models = [User, Organization, Game, ApiKey, PricingTier, OrganizationMember, UserTypeLookup];
+  const models = [User, Organization, Game, ApiKey, PricingTier, OrganizationMember, UserTypeLookup, LoginRequest];
   for (const model of models) {
     await model.sync({ alter: true });
   }
